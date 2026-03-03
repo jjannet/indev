@@ -1,0 +1,28 @@
+services:
+  api:
+    build:
+      context: ./indv-api
+      dockerfile: Dockerfile
+    container_name: indv-api
+    env_file:
+      - ./indv-api/.env.docker
+    environment:
+      - ENV_FILE=/dev/null
+    ports:
+      - "2051:2051"
+    volumes:
+      - ./indv-api/uploads:/app/uploads
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  ui:
+    build:
+      context: ./indv-ui
+      dockerfile: Dockerfile
+    container_name: indv-ui
+    ports:
+      - "2502:80"
+    depends_on:
+      - api
+    restart: unless-stopped

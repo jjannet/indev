@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"strings"
 
 	"indv-api/config"
 	"indv-api/controllers"
@@ -16,8 +17,12 @@ import (
 )
 
 func main() {
-	if err := godotenv.Load(); err != nil {
-		log.Println("Warning: .env file not found, using system environment variables")
+	envFile := os.Getenv("ENV_FILE")
+	if envFile == "" {
+		envFile = ".env.development"
+	}
+	if err := godotenv.Load(envFile); err != nil {
+		log.Printf("Warning: %s not found, using system environment variables", envFile)
 	}
 
 	config.ConnectDatabase()
@@ -26,8 +31,14 @@ func main() {
 
 	router := gin.Default()
 
+	allowedOrigins := os.Getenv("CORS_ORIGINS")
+	if allowedOrigins == "" {
+		allowedOrigins = "http://localhost:2002"
+	}
+	origins := strings.Split(allowedOrigins, ",")
+
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:2002"},
+		AllowOrigins:     origins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -91,9 +102,9 @@ func main() {
 		}
 	}
 
-	port := os.Getenv("PORT")
+	port := os.Getenv("APP_PORT")
 	if port == "" {
-		port = "8080"
+		port = "2001"
 	}
 
 	log.Printf("Server starting on port %s", port)

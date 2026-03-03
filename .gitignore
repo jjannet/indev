@@ -1,0 +1,23 @@
+# Environment files (keep only .env.example)
+.env.development
+.env.docker
+**/.env.development
+**/.env.docker
+
+# Uploads
+indv-api/uploads/
+
+# Node
+indv-ui/node_modules/
+indv-ui/dist/
+indv-ui/.angular/
+
+# Go
+indv-api/server
+indv-api/*.exe
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
