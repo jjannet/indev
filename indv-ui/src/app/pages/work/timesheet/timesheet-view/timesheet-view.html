@@ -7,6 +7,10 @@
           <lucide-icon [img]="icons.Lock" [size]="16"></lucide-icon>
           Closed - Read Only
         </span>
+        <button class="btn btn-primary" (click)="viewReport()">
+          <lucide-icon [img]="icons.FileText" [size]="18"></lucide-icon>
+          View Report
+        </button>
         <button class="btn btn-secondary" (click)="toggleStatus()" [disabled]="toggling()">
           <lucide-icon [img]="icons.Unlock" [size]="18"></lucide-icon>
           Re-open
@@ -24,6 +28,31 @@
     }
   </div>
 </div>
+
+@if (validationError()) {
+  <div class="validation-error-panel">
+    <div class="validation-header">
+      <strong>{{ validationError() }}</strong>
+      <button class="btn btn-sm btn-secondary" (click)="dismissValidation()">Dismiss</button>
+    </div>
+    @if (missingJobCode().length > 0) {
+      <table class="missing-table">
+        <thead>
+          <tr><th>Date</th><th>Description</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+          @for (item of missingJobCode(); track item.id) {
+            <tr>
+              <td class="nowrap">{{ item.date }}</td>
+              <td>{{ item.description }}</td>
+              <td><button class="btn btn-sm btn-primary" (click)="editLog(item.id)">Edit</button></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+}
 
 <div class="filters-bar">
   <select class="filter-select period-select" [(ngModel)]="selectedPeriodId" (ngModelChange)="onPeriodChange()">

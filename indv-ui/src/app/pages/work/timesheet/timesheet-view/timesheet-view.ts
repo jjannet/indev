@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
-  LucideAngularModule, Lock, Unlock, Clock, ChevronDown, ChevronRight,
+  LucideAngularModule, Lock, Unlock, Clock, ChevronDown, ChevronRight, FileText,
 } from 'lucide-angular';
 import {
   TimesheetService, TimesheetSummary, DailySummaryEntry,
@@ -20,7 +20,7 @@ import {
   styleUrl: './timesheet-view.scss',
 })
 export class TimesheetViewComponent implements OnInit {
-  readonly icons = { Lock, Unlock, Clock, ChevronDown, ChevronRight };
+  readonly icons = { Lock, Unlock, Clock, ChevronDown, ChevronRight, FileText };
 
   workPeriods = signal<WorkPeriodConfig[]>([]);
   selectedPeriodId = 0;
@@ -28,6 +28,8 @@ export class TimesheetViewComponent implements OnInit {
   loading = signal(false);
   toggling = signal(false);
   expandedDays = signal<Set<string>>(new Set());
+  validationError = signal('');
+  missingJobCode = signal<{ id: number; date: string; description: string }[]>([]);
 
   constructor(
     private readonly timesheetService: TimesheetService,
@@ -81,14 +83,35 @@ export class TimesheetViewComponent implements OnInit {
       : 'Re-open this timesheet? Work logs will be editable again.';
     if (!confirm(msg)) return;
 
+    this.validationError.set('');
+    this.missingJobCode.set([]);
     this.toggling.set(true);
     this.timesheetService.updateStatus(this.selectedPeriodId, newStatus).subscribe({
       next: () => {
         this.toggling.set(false);
         this.load();
       },
-      error: () => this.toggling.set(false),
+      error: (err) => {
+        this.toggling.set(false);
+        if (err.error?.missing_job_code) {
+          this.validationError.set(err.error.error);
+          this.missingJobCode.set(err.error.missing_job_code);
+        } else {
+          this.validationError.set(err.error?.error || 'Failed to update timesheet status');
+        }
+      },
     });
+  }
+
+  viewReport(): void {
+    this.router.navigate(['/dashboard/work/timesheet/report'], {
+      queryParams: { period_id: this.selectedPeriodId },
+    });
+  }
+
+  dismissValidation(): void {
+    this.validationError.set('');
+    this.missingJobCode.set([]);
   }
 
   toggleDay(dateStr: string): void {

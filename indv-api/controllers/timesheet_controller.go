@@ -17,7 +17,7 @@ type DailySummaryEntry struct {
 }
 
 type TimesheetSummary struct {
-	Timesheet      models.Timesheet       `json:"timesheet"`
+	Timesheet      models.Timesheet        `json:"timesheet"`
 	WorkPeriod     models.WorkPeriodConfig `json:"work_period"`
 	TotalDuration  int                     `json:"total_duration"`
 	DailySummaries []DailySummaryEntry     `json:"daily_summaries"`
@@ -167,6 +167,36 @@ func UpdateTimesheetStatus(c *gin.Context) {
 	if input.Status != "in_progress" && input.Status != "done" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Status must be in_progress or done"})
 		return
+	}
+
+	// Validate all work logs have job_code before closing
+	if input.Status == "done" {
+		var logsWithoutJC []models.WorkLog
+		config.DB.Where("user_id = ? AND date >= ? AND date <= ? AND (job_code_id IS NULL OR job_code_id = 0)",
+			userID, wp.StartDate, wp.EndDate).
+			Order("date ASC, start_time ASC").
+			Find(&logsWithoutJC)
+
+		if len(logsWithoutJC) > 0 {
+			type MissingEntry struct {
+				ID          uint   `json:"id"`
+				Date        string `json:"date"`
+				Description string `json:"description"`
+			}
+			missing := make([]MissingEntry, len(logsWithoutJC))
+			for i, l := range logsWithoutJC {
+				missing[i] = MissingEntry{
+					ID:          l.ID,
+					Date:        l.Date.Format("2006-01-02"),
+					Description: l.Description,
+				}
+			}
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error":            "Cannot close timesheet. Some work logs are missing a Job Code.",
+				"missing_job_code": missing,
+			})
+			return
+		}
 	}
 
 	var ts models.Timesheet

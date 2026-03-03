@@ -16,6 +16,7 @@ type WorkLog struct {
 	Customer    *Customer `json:"customer" gorm:"foreignKey:CustomerID"`
 	JobCodeID   *uint     `json:"job_code_id" gorm:"index"`
 	JobCode     *JobCode  `json:"job_code" gorm:"foreignKey:JobCodeID"`
+	RefID       string    `json:"ref_id"`
 	Description string    `json:"description" gorm:"not null"`
 	Status      string    `json:"status" gorm:"default:new;index"`
 	UserID      uint      `json:"user_id" gorm:"not null;index"`

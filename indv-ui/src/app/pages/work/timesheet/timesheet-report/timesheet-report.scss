@@ -1,0 +1,133 @@
+@use '../../../../shared/styles/crud';
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.report-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  background: var(--bg-card);
+}
+
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  white-space: nowrap;
+
+  th, td {
+    padding: 0.6rem 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  thead th {
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  tbody td {
+    color: var(--text-primary);
+  }
+
+  .col-date {
+    min-width: 80px;
+  }
+
+  .col-project {
+    min-width: 100px;
+  }
+
+  .col-desc {
+    min-width: 200px;
+    white-space: normal;
+    max-width: 350px;
+  }
+
+  .col-ref {
+    min-width: 90px;
+  }
+
+  .col-jc {
+    min-width: 110px;
+    text-align: center;
+  }
+
+  .col-total {
+    min-width: 80px;
+    text-align: center;
+  }
+
+  .duration-cell {
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+  }
+
+  .total-cell {
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .desc-cell {
+    white-space: normal;
+    max-width: 350px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .nowrap {
+    white-space: nowrap;
+  }
+}
+
+.subtotal-row {
+  background: var(--bg-secondary);
+
+  td {
+    border-top: 2px solid var(--border-color);
+    font-weight: 600;
+  }
+
+  .subtotal-label {
+    font-weight: 700;
+    color: var(--text-secondary);
+  }
+
+  .duration-cell {
+    font-weight: 700;
+  }
+}
+
+.grand-total-row {
+  td {
+    background: var(--bg-secondary);
+    border-top: 3px solid var(--accent);
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+
+  .grand-label {
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .duration-cell {
+    color: var(--accent);
+  }
+}

@@ -1,33 +1,67 @@
 <div class="dashboard">
   <h1 class="dashboard-title">Dashboard</h1>
-  <p class="dashboard-subtitle">Welcome back! Here's an overview of your system.</p>
 
-  <div class="stats-grid">
-    @for (stat of stats; track stat.label) {
-      <div class="stat-card">
-        <div class="stat-icon" [style.background]="stat.color + '15'" [style.color]="stat.color">
-          <lucide-icon [img]="stat.icon" [size]="24"></lucide-icon>
-        </div>
-        <div class="stat-info">
-          <span class="stat-value">{{ stat.value }}</span>
-          <span class="stat-label">{{ stat.label }}</span>
-        </div>
+  <div class="widget">
+    <div class="widget-header">
+      <div class="widget-title-row">
+        <lucide-icon [img]="icons.Clock" [size]="20"></lucide-icon>
+        <h2 class="widget-title">งานวันนี้ {{ todayDateStr }}</h2>
+        <span class="widget-duration">{{ formatDuration(todayTotal()) }}</span>
+        @if (timesheetLocked()) {
+          <span class="locked-badge">
+            <lucide-icon [img]="icons.Lock" [size]="14"></lucide-icon>
+            ปิด Timesheet แล้ว
+          </span>
+        }
       </div>
-    }
-  </div>
-
-  <div class="content-grid">
-    <div class="card">
-      <h3 class="card-title">Recent Activity</h3>
-      <div class="card-body">
-        <p class="empty-state">No recent activity to display.</p>
+      <div class="widget-actions">
+        @if (!timesheetLocked()) {
+          <button class="btn btn-primary btn-sm" (click)="addWorkLog()">
+            <lucide-icon [img]="icons.Plus" [size]="16"></lucide-icon>
+            + เพิ่มงาน
+          </button>
+        }
+        <button class="btn btn-secondary btn-sm" (click)="goToWorkLogs()">
+          <lucide-icon [img]="icons.List" [size]="16"></lucide-icon>
+          ดู Work Log ทั้งหมด
+        </button>
+        <button class="btn btn-secondary btn-sm" (click)="goToTimesheet()">
+          <lucide-icon [img]="icons.FileSpreadsheet" [size]="16"></lucide-icon>
+          Timesheet
+        </button>
       </div>
     </div>
-    <div class="card">
-      <h3 class="card-title">Quick Actions</h3>
-      <div class="card-body">
-        <p class="empty-state">Configure your quick actions in settings.</p>
-      </div>
+
+    <div class="widget-body">
+      @if (loading()) {
+        <p class="empty-state">Loading...</p>
+      } @else if (todayLogs().length === 0) {
+        <p class="empty-state">ยังไม่มีงานวันนี้</p>
+      } @else {
+        <div class="log-list">
+          @for (log of todayLogs(); track log.id) {
+            <div class="log-item">
+              <span class="log-time">{{ log.start_time }} - {{ log.end_time || '--:--' }}</span>
+              <span class="log-project">{{ log.project?.name || '-' }}</span>
+              <span class="log-desc">{{ stripHtml(log.description) }}</span>
+              <span class="log-jc">{{ log.job_code ? log.job_code.code + ' : ' + log.job_code.name : '-' }}</span>
+              <span class="log-duration">{{ log.duration ? formatDuration(log.duration) : '-' }}</span>
+              <span class="status-badge" [class]="log.status">{{ log.status }}</span>
+              @if (!timesheetLocked()) {
+                <button class="btn-icon" title="Edit" (click)="editWorkLog(log.id)">
+                  <lucide-icon [img]="icons.Pencil" [size]="14"></lucide-icon>
+                </button>
+              }
+            </div>
+          }
+        </div>
+
+        @if (extraCount > 0) {
+          <div class="extra-link">
+            <a (click)="goToWorkLogs()">และอีก {{ extraCount }} รายการ</a>
+          </div>
+        }
+      }
     </div>
   </div>
 </div>

@@ -64,6 +64,7 @@
       <th>Project</th>
       <th>Customer</th>
       <th>Job Code</th>
+      <th>Ref ID</th>
       <th>Description</th>
       <th>Status</th>
       @if (!isLocked) {
@@ -73,9 +74,9 @@
   </thead>
   <tbody>
     @if (loading()) {
-      <tr><td [attr.colspan]="isLocked ? 9 : 10" class="empty-row">Loading...</td></tr>
+      <tr><td [attr.colspan]="isLocked ? 10 : 11" class="empty-row">Loading...</td></tr>
     } @else if (data().length === 0) {
-      <tr><td [attr.colspan]="isLocked ? 9 : 10" class="empty-row">No work logs found</td></tr>
+      <tr><td [attr.colspan]="isLocked ? 10 : 11" class="empty-row">No work logs found</td></tr>
     } @else {
       @for (item of data(); track item.id) {
         <tr>
@@ -86,6 +87,7 @@
           <td>{{ item.project?.name || '-' }}</td>
           <td>{{ item.customer?.name || '-' }}</td>
           <td>{{ item.job_code?.name || '-' }}</td>
+          <td>{{ item.ref_id || '-' }}</td>
           <td class="desc-cell">{{ item.description }}</td>
           <td><span class="status-badge" [class]="item.status">{{ item.status }}</span></td>
           @if (!isLocked) {

@@ -18,6 +18,7 @@ export interface WorkLog {
   customer?: Customer;
   job_code_id?: number;
   job_code?: JobCode;
+  ref_id?: string;
   description: string;
   status: string;
   user_id: number;

@@ -25,6 +25,47 @@
   }
 }
 
+.validation-error-panel {
+  background: var(--error-bg);
+  border: 1px solid var(--error-border);
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+
+  .validation-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    color: var(--error-text);
+  }
+
+  .missing-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+
+    th, td {
+      padding: 0.5rem 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--error-border);
+    }
+
+    th {
+      font-weight: 600;
+      color: var(--error-text);
+    }
+
+    td {
+      color: var(--text-primary);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+  }
+}
+
 .period-select {
   min-width: 180px;
   font-weight: 600;

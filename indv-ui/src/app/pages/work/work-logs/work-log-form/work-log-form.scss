@@ -41,6 +41,17 @@
   margin-top: 0.2rem;
 }
 
+.form-group.full-width {
+  padding-bottom: 0.5rem;
+}
+
+.form-actions {
+  position: relative;
+  z-index: 2;
+  margin-top: 2rem;
+  clear: both;
+}
+
 .quick-chars-bar {
   display: flex;
   align-items: center;
@@ -135,6 +146,11 @@
 }
 
 :host ::ng-deep {
+  quill-editor {
+    display: block;
+    overflow: visible;
+  }
+
   .ql-toolbar.ql-snow {
     border: 1px solid var(--border-color);
     border-radius: 8px 8px 0 0;
@@ -149,10 +165,14 @@
     font-family: inherit;
     font-size: 0.9rem;
     color: var(--text-primary);
+    position: relative !important;
+    height: auto !important;
   }
 
   .ql-editor {
     min-height: 120px;
+    max-height: 300px;
+    overflow-y: auto;
     color: var(--text-primary);
 
     &.ql-blank::before {
@@ -176,6 +196,7 @@
   .ql-snow .ql-picker-options {
     background: var(--bg-card);
     border-color: var(--border-color);
+    z-index: 10;
   }
 
   .ql-snow .ql-picker-item {

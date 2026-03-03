@@ -87,6 +87,12 @@
         </div>
 
         <div class="form-group">
+          <label for="ref_id">Ref ID</label>
+          <input id="ref_id" type="text" [(ngModel)]="form.ref_id" name="ref_id"
+            placeholder="Optional reference ID" [disabled]="readOnly()" />
+        </div>
+
+        <div class="form-group">
           <label for="status">Status</label>
           <select id="status" [(ngModel)]="form.status" name="status" [disabled]="readOnly()">
             <option value="new">New</option>

@@ -105,6 +105,13 @@ func GetWorkLogs(c *gin.Context) {
 		}
 	}
 
+	// Filter by exact date
+	if dateStr := c.Query("date"); dateStr != "" {
+		if d, err := time.Parse("2006-01-02", dateStr); err == nil {
+			query = query.Where("work_logs.date = ?", d)
+		}
+	}
+
 	// Filter by project
 	if pid := c.Query("project_id"); pid != "" {
 		query = query.Where("work_logs.project_id = ?", pid)
@@ -232,6 +239,7 @@ func CreateWorkLog(c *gin.Context) {
 		ProjectID   uint   `json:"project_id" binding:"required"`
 		CustomerID  *uint  `json:"customer_id"`
 		JobCodeID   *uint  `json:"job_code_id"`
+		RefID       string `json:"ref_id"`
 		Description string `json:"description" binding:"required"`
 		Status      string `json:"status"`
 	}
@@ -312,6 +320,7 @@ func CreateWorkLog(c *gin.Context) {
 		ProjectID:   input.ProjectID,
 		CustomerID:  input.CustomerID,
 		JobCodeID:   input.JobCodeID,
+		RefID:       input.RefID,
 		Description: input.Description,
 		Status:      status,
 		UserID:      userID,
@@ -352,6 +361,7 @@ func UpdateWorkLog(c *gin.Context) {
 		ProjectID   uint   `json:"project_id" binding:"required"`
 		CustomerID  *uint  `json:"customer_id"`
 		JobCodeID   *uint  `json:"job_code_id"`
+		RefID       string `json:"ref_id"`
 		Description string `json:"description" binding:"required"`
 		Status      string `json:"status"`
 	}
@@ -427,6 +437,7 @@ func UpdateWorkLog(c *gin.Context) {
 	workLog.ProjectID = input.ProjectID
 	workLog.CustomerID = input.CustomerID
 	workLog.JobCodeID = input.JobCodeID
+	workLog.RefID = input.RefID
 	workLog.Description = input.Description
 	workLog.Status = status
 

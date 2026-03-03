@@ -1,0 +1,77 @@
+<div class="page-header">
+  <h1>Timesheet Summary Report</h1>
+  <div class="header-actions">
+    <button class="btn btn-primary" (click)="copyToClipboard()" [disabled]="!data()">
+      @if (copied()) {
+        <lucide-icon [img]="icons.Check" [size]="18"></lucide-icon>
+        คัดลอกแล้ว ✓
+      } @else {
+        <lucide-icon [img]="icons.ClipboardCopy" [size]="18"></lucide-icon>
+        Copy รายละเอียด
+      }
+    </button>
+    <button class="btn btn-secondary" (click)="goBack()">
+      <lucide-icon [img]="icons.ArrowLeft" [size]="18"></lucide-icon>
+      Back
+    </button>
+  </div>
+</div>
+
+@if (loading()) {
+  <p>Loading...</p>
+} @else if (data()) {
+  <div class="report-table-wrapper">
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th class="col-date">วันที่</th>
+          <th class="col-project">Project</th>
+          <th class="col-desc">Description</th>
+          <th class="col-ref">Ref ID</th>
+          @for (jc of jobCodeCols; track jc.id) {
+            <th class="col-jc">{{ jc.label }}</th>
+          }
+          <th class="col-total">รวม/วัน</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of pivotRows; track $index) {
+          @if (row.isSubtotal) {
+            <tr class="subtotal-row">
+              <td></td>
+              <td></td>
+              <td class="subtotal-label">{{ row.description }}</td>
+              <td></td>
+              @for (jc of jobCodeCols; track jc.id) {
+                <td class="duration-cell">{{ getJcDuration(row, jc.id) }}</td>
+              }
+              <td class="duration-cell total-cell">{{ formatDuration(row.dayTotal) }}</td>
+            </tr>
+          } @else {
+            <tr>
+              <td class="nowrap">{{ formatDateDisplay(row.date) }}</td>
+              <td>{{ row.projectName }}</td>
+              <td class="desc-cell">{{ row.description }}</td>
+              <td>{{ row.refId || '-' }}</td>
+              @for (jc of jobCodeCols; track jc.id) {
+                <td class="duration-cell">{{ getJcDuration(row, jc.id) }}</td>
+              }
+              <td class="duration-cell"></td>
+            </tr>
+          }
+        }
+      </tbody>
+      <tfoot>
+        <tr class="grand-total-row">
+          <td colspan="4" class="grand-label">รวมทั้งหมด</td>
+          @for (jc of jobCodeCols; track jc.id) {
+            <td class="duration-cell">{{ getGrandTotal(jc.id) }}</td>
+          }
+          <td class="duration-cell total-cell">{{ formatDuration(grandTotal) }}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+} @else {
+  <p class="empty-state">No data available. This report is only accessible for closed timesheets.</p>
+}

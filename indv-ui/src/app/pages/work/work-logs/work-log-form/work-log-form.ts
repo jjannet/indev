@@ -60,6 +60,7 @@ export class WorkLogFormComponent implements OnInit {
     project_id: 0,
     customer_id: 0,
     job_code_id: 0,
+    ref_id: '',
     description: '',
     status: 'new',
   };
@@ -120,6 +121,7 @@ export class WorkLogFormComponent implements OnInit {
           project_id: d.project_id,
           customer_id: d.customer_id || 0,
           job_code_id: d.job_code_id || 0,
+          ref_id: d.ref_id || '',
           description: d.description,
           status: d.status,
         };
@@ -153,6 +155,7 @@ export class WorkLogFormComponent implements OnInit {
           project_id: d.project_id,
           customer_id: d.customer_id || 0,
           job_code_id: d.job_code_id || 0,
+          ref_id: d.ref_id || '',
           description: d.description,
           status: 'new',
         };
@@ -269,6 +272,7 @@ export class WorkLogFormComponent implements OnInit {
       start_time: this.form.start_time,
       end_time: this.form.end_time,
       project_id: this.form.project_id,
+      ref_id: this.form.ref_id,
       description: this.form.description,
       status: this.form.status,
     };

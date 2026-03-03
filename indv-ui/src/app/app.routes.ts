@@ -102,6 +102,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/work/timesheet/timesheet-view/timesheet-view').then((m) => m.TimesheetViewComponent),
       },
+      {
+        path: 'work/timesheet/report',
+        loadComponent: () =>
+          import('./pages/work/timesheet/timesheet-report/timesheet-report').then((m) => m.TimesheetReportComponent),
+      },
     ],
   },
   { path: '', redirectTo: 'login', pathMatch: 'full' },
