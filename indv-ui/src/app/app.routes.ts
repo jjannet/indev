@@ -80,6 +80,28 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/work/work-period-configs/config-form/config-form').then((m) => m.ConfigFormComponent),
       },
+      // Work Logs
+      {
+        path: 'work/work-logs',
+        loadComponent: () =>
+          import('./pages/work/work-logs/work-log-list/work-log-list').then((m) => m.WorkLogListComponent),
+      },
+      {
+        path: 'work/work-logs/new',
+        loadComponent: () =>
+          import('./pages/work/work-logs/work-log-form/work-log-form').then((m) => m.WorkLogFormComponent),
+      },
+      {
+        path: 'work/work-logs/:id',
+        loadComponent: () =>
+          import('./pages/work/work-logs/work-log-form/work-log-form').then((m) => m.WorkLogFormComponent),
+      },
+      // Timesheet
+      {
+        path: 'work/timesheet',
+        loadComponent: () =>
+          import('./pages/work/timesheet/timesheet-view/timesheet-view').then((m) => m.TimesheetViewComponent),
+      },
     ],
   },
   { path: '', redirectTo: 'login', pathMatch: 'full' },

@@ -1,0 +1,127 @@
+<div class="page-header">
+  <h1>Work Logs</h1>
+  <div class="header-actions">
+    @if (isLocked) {
+      <span class="lock-badge done">Timesheet Closed - Read Only</span>
+    } @else {
+      <button class="btn btn-primary" (click)="create()">
+        <lucide-icon [img]="icons.Plus" [size]="18"></lucide-icon>
+        Add Work Log
+      </button>
+    }
+  </div>
+</div>
+
+<div class="filters-bar">
+  <select class="filter-select period-select" [(ngModel)]="selectedPeriodId" (ngModelChange)="onPeriodChange()">
+    @for (p of workPeriods(); track p.id) {
+      <option [ngValue]="p.id">{{ periodLabel(p) }}</option>
+    }
+  </select>
+  <select class="filter-select" [(ngModel)]="projectFilter" (change)="onFilter()">
+    <option value="">All Projects</option>
+    @for (p of projects(); track p.id) {
+      <option [value]="p.id">{{ p.name }}</option>
+    }
+  </select>
+  <select class="filter-select" [(ngModel)]="customerFilter" (change)="onFilter()">
+    <option value="">All Customers</option>
+    @for (c of customers(); track c.id) {
+      <option [value]="c.id">{{ c.name }}</option>
+    }
+  </select>
+  <select class="filter-select" [(ngModel)]="statusFilter" (change)="onFilter()">
+    <option value="">All Status</option>
+    <option value="new">New</option>
+    <option value="in_progress">In Progress</option>
+    <option value="wait_for_test">Wait for Test</option>
+    <option value="re_open">Re-open</option>
+    <option value="done">Done</option>
+  </select>
+</div>
+
+@if (summary()) {
+  <div class="summary-bar">
+    <div class="summary-item total">
+      <lucide-icon [img]="icons.Clock" [size]="18"></lucide-icon>
+      <span>Total: <strong>{{ formatDuration(summary()!.total_duration) }}</strong></span>
+    </div>
+    @for (ps of summary()!.project_summaries; track ps.project_id) {
+      <div class="summary-item">
+        <span>{{ ps.project_name }}: <strong>{{ formatDuration(ps.duration) }}</strong></span>
+      </div>
+    }
+  </div>
+}
+
+<table class="data-table">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Start</th>
+      <th>End</th>
+      <th>Duration</th>
+      <th>Project</th>
+      <th>Customer</th>
+      <th>Job Code</th>
+      <th>Description</th>
+      <th>Status</th>
+      @if (!isLocked) {
+        <th>Actions</th>
+      }
+    </tr>
+  </thead>
+  <tbody>
+    @if (loading()) {
+      <tr><td [attr.colspan]="isLocked ? 9 : 10" class="empty-row">Loading...</td></tr>
+    } @else if (data().length === 0) {
+      <tr><td [attr.colspan]="isLocked ? 9 : 10" class="empty-row">No work logs found</td></tr>
+    } @else {
+      @for (item of data(); track item.id) {
+        <tr>
+          <td class="nowrap">{{ formatDate(item.date) }}</td>
+          <td>{{ item.start_time }}</td>
+          <td>{{ item.end_time || '-' }}</td>
+          <td class="duration-cell">{{ item.duration ? formatDuration(item.duration) : '-' }}</td>
+          <td>{{ item.project?.name || '-' }}</td>
+          <td>{{ item.customer?.name || '-' }}</td>
+          <td>{{ item.job_code?.name || '-' }}</td>
+          <td class="desc-cell">{{ item.description }}</td>
+          <td><span class="status-badge" [class]="item.status">{{ item.status }}</span></td>
+          @if (!isLocked) {
+            <td>
+              <div class="actions-cell">
+                <button class="btn btn-secondary btn-sm" title="Edit" (click)="edit(item.id)">
+                  <lucide-icon [img]="icons.Pencil" [size]="14"></lucide-icon>
+                </button>
+                <button class="btn btn-secondary btn-sm" title="Copy" (click)="copyLog(item)">
+                  <lucide-icon [img]="icons.Copy" [size]="14"></lucide-icon>
+                </button>
+                <button class="btn btn-danger btn-sm" title="Delete" (click)="remove(item)">
+                  <lucide-icon [img]="icons.Trash2" [size]="14"></lucide-icon>
+                </button>
+              </div>
+            </td>
+          }
+        </tr>
+      }
+    }
+  </tbody>
+</table>
+
+@if (totalPages() > 1) {
+  <div class="pagination">
+    <div class="pagination-info">Showing page {{ page() }} of {{ totalPages() }} ({{ total() }} records)</div>
+    <div class="pagination-buttons">
+      <button class="page-btn" [disabled]="page() <= 1" (click)="goToPage(page() - 1)">
+        <lucide-icon [img]="icons.ChevronLeft" [size]="14"></lucide-icon>
+      </button>
+      @for (p of pages; track p) {
+        <button class="page-btn" [class.active]="p === page()" (click)="goToPage(p)">{{ p }}</button>
+      }
+      <button class="page-btn" [disabled]="page() >= totalPages()" (click)="goToPage(page() + 1)">
+        <lucide-icon [img]="icons.ChevronRight" [size]="14"></lucide-icon>
+      </button>
+    </div>
+  </div>
+}

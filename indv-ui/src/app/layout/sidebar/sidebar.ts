@@ -14,6 +14,8 @@ import {
   FolderKanban,
   Code2,
   CalendarClock,
+  ClipboardList,
+  FileSpreadsheet,
 } from 'lucide-angular';
 
 @Component({
@@ -27,6 +29,7 @@ export class SidebarComponent {
   readonly icons = {
     LayoutDashboard, Users, Settings, FolderOpen, Briefcase,
     ChevronDown, ChevronRight, Building2, FolderKanban, Code2, CalendarClock,
+    ClipboardList, FileSpreadsheet,
   };
 
   readonly menuItems = [
@@ -38,6 +41,8 @@ export class SidebarComponent {
     { label: 'Projects', icon: this.icons.FolderKanban, route: '/dashboard/work/projects' },
     { label: 'Job Codes', icon: this.icons.Code2, route: '/dashboard/work/job-codes' },
     { label: 'Period Configs', icon: this.icons.CalendarClock, route: '/dashboard/work/work-period-configs' },
+    { label: 'Work Logs', icon: this.icons.ClipboardList, route: '/dashboard/work/work-logs' },
+    { label: 'Timesheet', icon: this.icons.FileSpreadsheet, route: '/dashboard/work/timesheet' },
   ];
 
   workExpanded = signal(true);

@@ -75,6 +75,19 @@ func main() {
 			protected.POST("/work-period-configs", controllers.CreateWorkPeriodConfig)
 			protected.PUT("/work-period-configs/:id", controllers.UpdateWorkPeriodConfig)
 			protected.DELETE("/work-period-configs/:id", controllers.DeleteWorkPeriodConfig)
+
+			// Work Log routes
+			protected.GET("/work-logs", controllers.GetWorkLogs)
+			protected.GET("/work-logs/summary", controllers.GetWorkLogSummary)
+			protected.GET("/work-logs/last-project", controllers.GetLastUsedProject)
+			protected.GET("/work-logs/:id", controllers.GetWorkLog)
+			protected.POST("/work-logs", controllers.CreateWorkLog)
+			protected.PUT("/work-logs/:id", controllers.UpdateWorkLog)
+			protected.DELETE("/work-logs/:id", controllers.DeleteWorkLog)
+
+			// Timesheet routes
+			protected.GET("/timesheets/:work_period_id", controllers.GetTimesheetByPeriod)
+			protected.PUT("/timesheets/:work_period_id/status", controllers.UpdateTimesheetStatus)
 		}
 	}
 

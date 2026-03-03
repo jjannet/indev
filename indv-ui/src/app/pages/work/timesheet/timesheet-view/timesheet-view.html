@@ -1,0 +1,104 @@
+<div class="page-header">
+  <h1>Timesheet</h1>
+  <div class="header-actions">
+    @if (data()) {
+      @if (isLocked) {
+        <span class="lock-badge done">
+          <lucide-icon [img]="icons.Lock" [size]="16"></lucide-icon>
+          Closed - Read Only
+        </span>
+        <button class="btn btn-secondary" (click)="toggleStatus()" [disabled]="toggling()">
+          <lucide-icon [img]="icons.Unlock" [size]="18"></lucide-icon>
+          Re-open
+        </button>
+      } @else {
+        <span class="lock-badge in-progress">
+          <lucide-icon [img]="icons.Unlock" [size]="16"></lucide-icon>
+          In Progress - Editable
+        </span>
+        <button class="btn btn-primary" (click)="toggleStatus()" [disabled]="toggling()">
+          <lucide-icon [img]="icons.Lock" [size]="18"></lucide-icon>
+          Close Timesheet
+        </button>
+      }
+    }
+  </div>
+</div>
+
+<div class="filters-bar">
+  <select class="filter-select period-select" [(ngModel)]="selectedPeriodId" (ngModelChange)="onPeriodChange()">
+    @for (p of workPeriods(); track p.id) {
+      <option [ngValue]="p.id">{{ periodLabel(p) }}</option>
+    }
+  </select>
+</div>
+
+@if (loading()) {
+  <p>Loading...</p>
+} @else if (data()) {
+  <!-- Monthly Summary -->
+  <div class="summary-section">
+    <h2>Monthly Summary</h2>
+    <div class="summary-cards">
+      <div class="summary-card total">
+        <div class="card-label">Total Duration</div>
+        <div class="card-value">{{ formatDuration(data()!.total_duration) }}</div>
+        <div class="card-sub">{{ formatHours(data()!.total_duration) }}</div>
+      </div>
+      @for (ps of data()!.project_summary; track ps.project_id) {
+        <div class="summary-card">
+          <div class="card-label">{{ ps.project_name }}</div>
+          <div class="card-value">{{ formatDuration(ps.duration) }}</div>
+          <div class="card-sub">{{ formatHours(ps.duration) }}</div>
+        </div>
+      }
+    </div>
+
+    @if (data()!.job_code_summary.length > 0) {
+      <h3>By Job Code</h3>
+      <div class="summary-cards">
+        @for (jc of data()!.job_code_summary; track jc.job_code_id) {
+          <div class="summary-card small">
+            <div class="card-label">{{ jc.job_code_name || 'No Job Code' }}</div>
+            <div class="card-value">{{ formatDuration(jc.duration) }}</div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Daily Summaries -->
+  <div class="daily-section">
+    <h2>Daily Details</h2>
+    @if (data()!.daily_summaries.length === 0) {
+      <div class="empty-state">No work logs found for this period</div>
+    } @else {
+      @for (day of data()!.daily_summaries; track day.date) {
+        <div class="day-group">
+          <button class="day-header" (click)="toggleDay(day.date)">
+            <lucide-icon
+              [img]="isDayExpanded(day.date) ? icons.ChevronDown : icons.ChevronRight"
+              [size]="16"
+            ></lucide-icon>
+            <span class="day-label">{{ dayLabel(day.date) }}</span>
+            <span class="day-duration">{{ formatDuration(day.duration) }}</span>
+            <span class="day-count">{{ day.logs.length }} task(s)</span>
+          </button>
+          @if (isDayExpanded(day.date)) {
+            <div class="day-logs">
+              @for (log of day.logs; track log.id) {
+                <div class="log-row" [class.clickable]="!isLocked" (click)="!isLocked && editLog(log.id)">
+                  <span class="log-time">{{ log.start_time }} - {{ log.end_time }}</span>
+                  <span class="log-duration">{{ formatDuration(log.duration) }}</span>
+                  <span class="log-project">{{ log.project?.name }}</span>
+                  <span class="log-desc">{{ log.description }}</span>
+                  <span class="status-badge" [class]="log.status">{{ log.status }}</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    }
+  </div>
+}

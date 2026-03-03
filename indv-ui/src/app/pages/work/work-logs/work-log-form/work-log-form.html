@@ -1,0 +1,156 @@
+<div class="page-header">
+  <h1>
+    @if (isCopy()) { Copy Work Log }
+    @else if (isEdit()) { Edit Work Log }
+    @else { New Work Log }
+  </h1>
+  <button class="btn btn-secondary" (click)="goBack()">
+    <lucide-icon [img]="icons.ArrowLeft" [size]="18"></lucide-icon>
+    Back
+  </button>
+</div>
+
+@if (readOnly()) {
+  <div class="readonly-banner">
+    <lucide-icon [img]="icons.Lock" [size]="18"></lucide-icon>
+    {{ readOnlyReason() }}
+  </div>
+}
+
+@if (error()) {
+  <div class="error-message">{{ error() }}</div>
+}
+
+@if (loading()) {
+  <p>Loading...</p>
+} @else {
+  <div class="form-card">
+    <form (ngSubmit)="onSubmit()" #f="ngForm">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="date">Date *</label>
+          <input id="date" type="date" [(ngModel)]="form.date" name="date" required [disabled]="readOnly()" />
+        </div>
+
+        <div class="form-group">
+          <label for="start_time">Start Time *</label>
+          <input id="start_time" type="time" [(ngModel)]="form.start_time" name="start_time" required [disabled]="readOnly()" />
+        </div>
+
+        <div class="form-group">
+          <label for="end_time">End Time</label>
+          <input id="end_time" type="time" [(ngModel)]="form.end_time" name="end_time" [disabled]="readOnly()" />
+          @if (form.start_time && form.end_time && !isTimeValid) {
+            <span class="field-error">End time must be after start time</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label>Duration</label>
+          <div class="duration-display">{{ computedDuration }}</div>
+        </div>
+
+        <div class="form-group">
+          <label for="project_id">Project *</label>
+          <select id="project_id" [(ngModel)]="form.project_id" name="project_id" required
+            (change)="onProjectChange()" [disabled]="readOnly()">
+            <option [ngValue]="0" disabled>Select Project</option>
+            @for (p of projects(); track p.id) {
+              <option [ngValue]="p.id">{{ p.name }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="customer_id">Customer</label>
+          <select id="customer_id" [(ngModel)]="form.customer_id" name="customer_id"
+            (change)="onCustomerChange()" [disabled]="readOnly() || customerLocked() || !form.project_id">
+            <option [ngValue]="0">{{ form.project_id ? 'Select Customer' : 'Select Project first' }}</option>
+            @for (c of customers(); track c.id) {
+              <option [ngValue]="c.id">{{ c.name }}</option>
+            }
+          </select>
+          @if (customerLocked()) {
+            <span class="field-hint">Auto-filled from Job Code</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="job_code_id">Job Code</label>
+          <select id="job_code_id" [(ngModel)]="form.job_code_id" name="job_code_id"
+            (change)="onJobCodeChange()" [disabled]="readOnly() || !form.customer_id">
+            <option [ngValue]="0">{{ form.customer_id ? 'Select Job Code (optional)' : 'Select Customer first' }}</option>
+            @for (jc of jobCodes(); track jc.id) {
+              <option [ngValue]="jc.id">{{ jc.code }} - {{ jc.name }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="status">Status</label>
+          <select id="status" [(ngModel)]="form.status" name="status" [disabled]="readOnly()">
+            <option value="new">New</option>
+            <option value="in_progress">In Progress</option>
+            <option value="wait_for_test">Wait for Test</option>
+            <option value="re_open">Re-open</option>
+            <option value="done">Done</option>
+          </select>
+        </div>
+
+        <div class="form-group full-width">
+          <label>Description *</label>
+          <div class="quick-chars-bar">
+            <span class="quick-chars-label">Quick Insert:</span>
+            @for (ch of quickChars; track $index) {
+              <button type="button" class="quick-char-btn" [title]="'Insert ' + ch"
+                (click)="insertChar(ch)" [disabled]="readOnly()">{{ ch }}</button>
+            }
+            @if (!showAddChar) {
+              <button type="button" class="quick-char-btn add-btn" title="Add custom character"
+                (click)="showAddChar = true" [disabled]="readOnly()">
+                <lucide-icon [img]="icons.Plus" [size]="12"></lucide-icon>
+              </button>
+            } @else {
+              <span class="add-char-input">
+                <input type="text" [(ngModel)]="newChar" [ngModelOptions]="{ standalone: true }"
+                  placeholder="char" maxlength="4" (keydown.enter)="addQuickChar()" />
+                <button type="button" class="quick-char-btn add-btn" (click)="addQuickChar()">
+                  <lucide-icon [img]="icons.Plus" [size]="12"></lucide-icon>
+                </button>
+                <button type="button" class="quick-char-btn remove-btn" (click)="showAddChar = false">
+                  <lucide-icon [img]="icons.X" [size]="12"></lucide-icon>
+                </button>
+              </span>
+            }
+          </div>
+          <quill-editor
+            [(ngModel)]="form.description"
+            name="description"
+            [modules]="quillModules"
+            [readOnly]="readOnly()"
+            theme="snow"
+            placeholder="Enter description..."
+            [styles]="{ minHeight: '120px' }"
+            #desc="ngModel"
+            #quillEditor
+            required
+          ></quill-editor>
+          @if (desc.invalid && desc.touched) {
+            <span class="field-error">Description is required</span>
+          }
+        </div>
+      </div>
+
+      @if (!readOnly()) {
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary"
+            [disabled]="f.invalid || saving() || !form.project_id || !isTimeValid || !hasRequiredSelection">
+            <lucide-icon [img]="icons.Save" [size]="18"></lucide-icon>
+            {{ saving() ? 'Saving...' : 'Save' }}
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="goBack()">Cancel</button>
+        </div>
+      }
+    </form>
+  </div>
+}

@@ -14,6 +14,8 @@ func AutoMigrate(db *gorm.DB) {
 		&ProjectCustomer{},
 		&JobCode{},
 		&WorkPeriodConfig{},
+		&WorkLog{},
+		&Timesheet{},
 	)
 	if err != nil {
 		log.Fatalf("Failed to auto-migrate: %v", err)
