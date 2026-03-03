@@ -7,18 +7,37 @@
 ### Auth
 - [x] JWT login (email/password) → `POST /api/auth/login`
 - [x] Auth middleware (Bearer token validation)
+- [x] ForceResetMiddleware (blocks all endpoints except reset-password if force_reset_password=true)
+- [x] AdminMiddleware (checks is_system_admin for /api/system-admin/* routes)
 - [x] Profile endpoint → `GET /api/auth/profile`
+- [x] Register endpoint → `POST /api/auth/register` (first user = system admin)
+- [x] Force Reset Password → `PUT /api/auth/reset-password`
+- [x] Change Password → `PUT /api/auth/change-password`
 - [x] Seed admin user (`admin@indev.com` / `admin1234`)
-- [x] Frontend login page with redirect
-- [x] authGuard / guestGuard (CanActivateFn)
+- [x] Frontend login page with redirect (force_reset_password → /reset-password)
+- [x] Frontend register page with validation
+- [x] Frontend force reset password page (no navigation, standalone)
+- [x] Frontend change password page (accessible from header)
+- [x] authGuard / guestGuard / forceResetGuard / resetPageGuard / adminGuard
 - [x] authInterceptor (auto-attach Bearer token)
-- [x] Token stored in localStorage
+- [x] Token + user state (is_system_admin, force_reset_password) stored in localStorage
+
+### System Admin — User Management
+- [x] User model: is_system_admin, force_reset_password, status fields
+- [x] CRUD API: list (paginated, search), get, create, update, soft-delete (set inactive)
+- [x] Admin sets password → force_reset_password = true automatically
+- [x] Cannot change own admin status or deactivate self
+- [x] Cannot delete last system admin
+- [x] Frontend: user-list (table, search, status filter, pagination)
+- [x] Frontend: user-form (create/edit with admin checkbox, password field)
+- [x] Sidebar: System Admin menu visible only to is_system_admin users
 
 ### Layout & Theme
 - [x] Sidebar (260px fixed) + Header (sticky) + Content area
 - [x] Light/Dark theme toggle via CSS custom properties (`[data-theme]`)
 - [x] ThemeService with signal + localStorage persistence
-- [x] Sidebar menu: Dashboard, Work module (Customers, Projects, Job Codes, Period Configs, Work Logs, Timesheet)
+- [x] Sidebar menu: Dashboard, Work module, System Admin (conditional)
+- [x] Header: Change Password link
 
 ### Customer Module
 - [x] Model: id, code, name, short_name, status, description, user_id
@@ -79,6 +98,7 @@
 - [x] Pagination helper (PaginationParams, PaginatedResponse)
 - [x] DB auto-migration with one-time column migrations
 - [x] Shared CRUD styles (`shared/styles/crud.scss`)
+- [x] Shared auth page styles (`shared/styles/_auth-page.scss`)
 
 ## 🚧 In Progress
 
@@ -87,8 +107,8 @@ _(No features currently in progress)_
 ## 📋 Todo
 
 ### User Management
-- [ ] User profile edit (change name, password)
-- [ ] Multi-user support / user registration
+- [x] ~~User profile edit (change name, password)~~ — Done via Change Password
+- [x] ~~Multi-user support / user registration~~ — Done via Register + System Admin
 
 ### Reporting
 - [ ] Export timesheet to PDF/Excel

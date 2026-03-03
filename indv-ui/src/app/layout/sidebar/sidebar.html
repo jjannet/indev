@@ -41,5 +41,33 @@
         </div>
       }
     </div>
+
+    @if (authService.isSystemAdmin()) {
+      <div class="nav-group">
+        <button class="nav-group-header" (click)="toggleAdmin()">
+          <lucide-icon [img]="icons.ShieldCheck" [size]="20"></lucide-icon>
+          <span>System Admin</span>
+          <lucide-icon
+            class="chevron"
+            [img]="adminExpanded() ? icons.ChevronDown : icons.ChevronRight"
+            [size]="16"
+          ></lucide-icon>
+        </button>
+        @if (adminExpanded()) {
+          <div class="nav-group-items">
+            @for (item of adminMenuItems; track item.route) {
+              <a
+                [routerLink]="item.route"
+                routerLinkActive="active"
+                class="nav-item sub-item"
+              >
+                <lucide-icon [img]="item.icon" [size]="18"></lucide-icon>
+                <span>{{ item.label }}</span>
+              </a>
+            }
+          </div>
+        }
+      </div>
+    }
   </nav>
 </aside>

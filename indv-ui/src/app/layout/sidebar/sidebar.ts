@@ -16,7 +16,9 @@ import {
   CalendarClock,
   ClipboardList,
   FileSpreadsheet,
+  ShieldCheck,
 } from 'lucide-angular';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -29,7 +31,7 @@ export class SidebarComponent {
   readonly icons = {
     LayoutDashboard, Users, Settings, FolderOpen, Briefcase,
     ChevronDown, ChevronRight, Building2, FolderKanban, Code2, CalendarClock,
-    ClipboardList, FileSpreadsheet,
+    ClipboardList, FileSpreadsheet, ShieldCheck,
   };
 
   readonly menuItems = [
@@ -45,9 +47,20 @@ export class SidebarComponent {
     { label: 'Timesheet', icon: this.icons.FileSpreadsheet, route: '/dashboard/work/timesheet' },
   ];
 
+  readonly adminMenuItems = [
+    { label: 'Users', icon: this.icons.Users, route: '/dashboard/system-admin/users' },
+  ];
+
   workExpanded = signal(true);
+  adminExpanded = signal(true);
+
+  constructor(readonly authService: AuthService) {}
 
   toggleWork(): void {
     this.workExpanded.update((v) => !v);
+  }
+
+  toggleAdmin(): void {
+    this.adminExpanded.update((v) => !v);
   }
 }

@@ -1,0 +1,114 @@
+<div class="page-header">
+  <h1>{{ isEdit() ? 'Edit User' : 'Add User' }}</h1>
+  <button class="btn btn-secondary" (click)="goBack()">
+    <lucide-icon [img]="icons.ArrowLeft" [size]="18"></lucide-icon>
+    Back
+  </button>
+</div>
+
+@if (error()) {
+  <div class="error-message">{{ error() }}</div>
+}
+
+@if (loading()) {
+  <p>Loading...</p>
+} @else {
+  <div class="form-card">
+    <form (ngSubmit)="onSubmit()" #f="ngForm">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="fullName">Name *</label>
+          <input
+            id="fullName"
+            type="text"
+            [(ngModel)]="form.full_name"
+            name="full_name"
+            placeholder="Full name"
+            required
+            #fullName="ngModel"
+          />
+          @if (fullName.invalid && fullName.touched) {
+            <span class="field-error">Name is required</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email *</label>
+          <input
+            id="email"
+            type="email"
+            [(ngModel)]="form.email"
+            name="email"
+            placeholder="user&#64;example.com"
+            required
+            [readonly]="isEdit()"
+            [class.readonly]="isEdit()"
+            #emailField="ngModel"
+          />
+          @if (emailField.invalid && emailField.touched) {
+            <span class="field-error">Valid email is required</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password {{ isEdit() ? '(leave blank to keep current)' : '*' }}</label>
+          <div class="password-field">
+            <input
+              id="password"
+              [type]="showPassword() ? 'text' : 'password'"
+              [(ngModel)]="form.password"
+              name="password"
+              [placeholder]="isEdit() ? 'Leave blank to keep current' : 'Min 8 characters'"
+              [required]="!isEdit()"
+              minlength="8"
+              autocomplete="new-password"
+            />
+            <button type="button" class="password-toggle" (click)="showPassword.update(v => !v)" title="Toggle password">
+              @if (showPassword()) {
+                <lucide-icon [img]="icons.EyeOff" [size]="18"></lucide-icon>
+              } @else {
+                <lucide-icon [img]="icons.Eye" [size]="18"></lucide-icon>
+              }
+            </button>
+          </div>
+          @if (isEdit() && form.password) {
+            <span class="field-error">การกรอก password ใหม่จะ set force_reset_password = true ให้ user คนนี้อัตโนมัติ</span>
+          }
+        </div>
+
+        @if (isEdit()) {
+          <div class="form-group">
+            <label for="status">Status</label>
+            <select id="status" [(ngModel)]="form.status" name="status" [disabled]="isSelf">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+        }
+
+        <div class="form-group full-width checkbox-group">
+          <label>
+            <input
+              type="checkbox"
+              [(ngModel)]="form.is_system_admin"
+              name="is_system_admin"
+              [disabled]="isSelf"
+            />
+            System Admin
+          </label>
+          @if (isSelf) {
+            <span class="field-error">ไม่สามารถเปลี่ยนสถานะ admin ของตัวเองได้</span>
+          }
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="f.invalid || saving()">
+          <lucide-icon [img]="icons.Save" [size]="18"></lucide-icon>
+          {{ saving() ? 'Saving...' : (isEdit() ? 'Update' : 'Create') }}
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="goBack()">Cancel</button>
+      </div>
+    </form>
+  </div>
+}

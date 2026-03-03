@@ -1,0 +1,14 @@
+@use '../../../shared/styles/crud';
+
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: rgba(99, 102, 241, 0.12) !important;
+  color: #6366f1 !important;
+}
+
+.user-badge {
+  background: var(--bg-secondary) !important;
+  color: var(--text-secondary) !important;
+}

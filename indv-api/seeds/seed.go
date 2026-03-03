@@ -16,10 +16,12 @@ func SeedAdminUser(db *gorm.DB) {
 	}
 
 	admin := models.User{
-		Email:    "admin@indev.com",
-		Password: "admin1234",
-		FullName: "System Admin",
-		Role:     "admin",
+		Email:         "admin@indev.com",
+		Password:      "admin1234",
+		FullName:      "System Admin",
+		Role:          "admin",
+		IsSystemAdmin: true,
+		Status:        "active",
 	}
 
 	if err := admin.HashPassword(); err != nil {

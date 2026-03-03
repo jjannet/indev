@@ -1,0 +1,89 @@
+<div class="page-header">
+  <h1>User Management</h1>
+  <button class="btn btn-primary" (click)="addUser()">
+    <lucide-icon [img]="icons.Plus" [size]="18"></lucide-icon>
+    Add User
+  </button>
+</div>
+
+<div class="filters-bar">
+  <input
+    class="search-input"
+    type="text"
+    [(ngModel)]="search"
+    (keyup.enter)="onSearch()"
+    placeholder="Search by name or email..."
+  />
+  <select class="filter-select" [(ngModel)]="statusFilter" (change)="onStatusFilter()">
+    <option value="">All Status</option>
+    <option value="active">Active</option>
+    <option value="inactive">Inactive</option>
+  </select>
+</div>
+
+<table class="data-table">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Admin</th>
+      <th>Status</th>
+      <th>Created</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    @if (loading()) {
+      <tr><td colspan="6" class="empty-row">Loading...</td></tr>
+    } @else if (users().length === 0) {
+      <tr><td colspan="6" class="empty-row">No users found</td></tr>
+    } @else {
+      @for (user of users(); track user.id) {
+        <tr>
+          <td>{{ user.full_name }}</td>
+          <td>{{ user.email }}</td>
+          <td>
+            @if (user.is_system_admin) {
+              <span class="status-badge admin-badge">
+                <lucide-icon [img]="icons.ShieldCheck" [size]="14"></lucide-icon>
+                Admin
+              </span>
+            } @else {
+              <span class="status-badge user-badge">User</span>
+            }
+          </td>
+          <td>
+            <span class="status-badge" [class]="user.status">{{ user.status }}</span>
+          </td>
+          <td>{{ user.created_at | date:'dd/MM/yyyy' }}</td>
+          <td>
+            <div class="actions-cell">
+              <button class="btn btn-secondary btn-sm" title="Edit" (click)="editUser(user.id)">
+                <lucide-icon [img]="icons.Pencil" [size]="14"></lucide-icon>
+              </button>
+              @if (user.status === 'active') {
+                <button class="btn btn-danger btn-sm" title="Deactivate" (click)="deleteUser(user)">
+                  <lucide-icon [img]="icons.Trash2" [size]="14"></lucide-icon>
+                </button>
+              }
+            </div>
+          </td>
+        </tr>
+      }
+    }
+  </tbody>
+</table>
+
+@if (totalPages > 1) {
+  <div class="pagination">
+    <div class="pagination-info">Showing page {{ page() }} of {{ totalPages }} ({{ total() }} records)</div>
+    <div class="pagination-buttons">
+      <button class="page-btn" [disabled]="page() <= 1" (click)="prevPage()">
+        <lucide-icon [img]="icons.ChevronLeft" [size]="14"></lucide-icon>
+      </button>
+      <button class="page-btn" [disabled]="page() >= totalPages" (click)="nextPage()">
+        <lucide-icon [img]="icons.ChevronRight" [size]="14"></lucide-icon>
+      </button>
+    </div>
+  </div>
+}

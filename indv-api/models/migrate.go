@@ -31,5 +31,20 @@ func AutoMigrate(db *gorm.DB) {
 		log.Println("Migrated work_period_configs: removed status/is_default/description, using is_confirmed")
 	}
 
+	// One-time migration: ensure at least one system admin exists
+	var adminCount int64
+	db.Model(&User{}).Where("is_system_admin = ?", true).Count(&adminCount)
+	if adminCount == 0 {
+		// Set the first user as system admin
+		var firstUser User
+		if err := db.Order("id ASC").First(&firstUser).Error; err == nil {
+			db.Model(&firstUser).Updates(map[string]interface{}{
+				"is_system_admin": true,
+				"status":          "active",
+			})
+			log.Printf("Migrated: set user #%d (%s) as system admin", firstUser.ID, firstUser.Email)
+		}
+	}
+
 	log.Println("Database migration completed")
 }

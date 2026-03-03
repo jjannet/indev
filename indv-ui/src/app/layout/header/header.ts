@@ -1,18 +1,19 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LucideAngularModule, Moon, Sun, LogOut, User } from 'lucide-angular';
+import { RouterLink } from '@angular/router';
+import { LucideAngularModule, Moon, Sun, LogOut, User, KeyRound } from 'lucide-angular';
 import { AuthService } from '../../services/auth.service';
 import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, RouterLink],
   templateUrl: './header.html',
   styleUrl: './header.scss',
 })
 export class HeaderComponent {
-  readonly icons = { Moon, Sun, LogOut, User };
+  readonly icons = { Moon, Sun, LogOut, User, KeyRound };
 
   constructor(
     readonly authService: AuthService,

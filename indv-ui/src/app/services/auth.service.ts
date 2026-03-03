@@ -9,11 +9,21 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface RegisterRequest {
+  full_name: string;
+  email: string;
+  password: string;
+  confirm_password: string;
+}
+
 export interface User {
   id: number;
   email: string;
   full_name: string;
   role: string;
+  is_system_admin: boolean;
+  force_reset_password: boolean;
+  status: string;
 }
 
 export interface LoginResponse {
@@ -43,6 +53,31 @@ export class AuthService {
     );
   }
 
+  register(data: RegisterRequest): Observable<{ data: User }> {
+    return this.http.post<{ data: User }>(`${this.apiUrl}/auth/register`, data);
+  }
+
+  forceResetPassword(data: { new_password: string; confirm_new_password: string }): Observable<{ message: string }> {
+    return this.http.put<{ message: string }>(`${this.apiUrl}/auth/reset-password`, data).pipe(
+      tap(() => {
+        const user = this.currentUser();
+        if (user) {
+          const updated = { ...user, force_reset_password: false };
+          localStorage.setItem('user', JSON.stringify(updated));
+          this.currentUser.set(updated);
+        }
+      }),
+    );
+  }
+
+  changePassword(data: {
+    current_password: string;
+    new_password: string;
+    confirm_new_password: string;
+  }): Observable<{ message: string }> {
+    return this.http.put<{ message: string }>(`${this.apiUrl}/auth/change-password`, data);
+  }
+
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -56,6 +91,14 @@ export class AuthService {
 
   isAuthenticated(): boolean {
     return !!this.getToken();
+  }
+
+  isSystemAdmin(): boolean {
+    return this.currentUser()?.is_system_admin ?? false;
+  }
+
+  isForceReset(): boolean {
+    return this.currentUser()?.force_reset_password ?? false;
   }
 
   private loadUser(): void {

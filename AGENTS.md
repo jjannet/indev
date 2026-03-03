@@ -42,12 +42,13 @@ indv-api/
 │   ├── job_code_controller.go
 │   ├── work_period_config_controller.go
 │   ├── work_log_controller.go
-│   └── timesheet_controller.go
+│   ├── timesheet_controller.go
+│   └── system_admin_controller.go
 ├── helpers/
 │   ├── pagination.go        # PaginationParams, PaginatedResponse
 │   └── user.go              # GetUserID from gin context
 ├── middleware/
-│   └── auth.go              # JWT auth middleware
+│   └── auth.go              # AuthMiddleware + ForceResetMiddleware + AdminMiddleware
 ├── models/
 │   ├── user.go
 │   ├── customer.go
@@ -73,7 +74,7 @@ indv-ui/
 │   └── app/
 │       ├── app.ts / app.html / app.scss / app.routes.ts / app.config.ts
 │       ├── guards/
-│       │   └── auth.guard.ts    # authGuard + guestGuard (CanActivateFn)
+│       │   └── auth.guard.ts    # authGuard, guestGuard, forceResetGuard, resetPageGuard, adminGuard
 │       ├── interceptors/
 │       │   └── auth.interceptor.ts  # HttpInterceptorFn, Bearer token
 │       ├── layout/
@@ -82,7 +83,13 @@ indv-ui/
 │       │   └── sidebar/                 # Sidebar component (menu items)
 │       ├── pages/
 │       │   ├── login/                   # Login page
+│       │   ├── register/               # Register page
+│       │   ├── reset-password/          # Force reset password page
+│       │   ├── change-password/         # Change password page
 │       │   ├── dashboard/               # Dashboard (today's logs summary)
+│       │   ├── system-admin/
+│       │   │   ├── user-list/           # User management list
+│       │   │   └── user-form/           # User create/edit form
 │       │   └── work/
 │       │       ├── customers/           # customer-list + customer-form
 │       │       ├── projects/            # project-list + project-form
@@ -98,10 +105,12 @@ indv-ui/
 │       │   ├── job-code.service.ts
 │       │   ├── work-period-config.service.ts
 │       │   ├── work-log.service.ts
-│       │   └── timesheet.service.ts
+│       │   ├── timesheet.service.ts
+│       │   └── user.service.ts
 │       └── shared/
 │           └── styles/
-│               └── crud.scss    # Shared CRUD page styles
+│               ├── crud.scss        # Shared CRUD page styles
+│               └── _auth-page.scss  # Shared auth page styles (login/register/reset)
 ```
 
 ## File Conventions
@@ -129,7 +138,8 @@ indv-ui/
 
 | Module | Backend Controller | Frontend Pages | Description |
 |--------|-------------------|---------------|-------------|
-| **Auth** | `auth_controller.go` | `login/` | JWT login, profile endpoint |
+| **Auth** | `auth_controller.go` | `login/`, `register/`, `reset-password/`, `change-password/` | JWT login, register, force reset, change password, profile |
+| **System Admin** | `system_admin_controller.go` | `system-admin/user-list/`, `system-admin/user-form/` | User management (CRUD, admin-only) |
 | **Customer** | `customer_controller.go` | `customers/` | CRUD for customers |
 | **Project** | `project_controller.go` | `projects/` | CRUD for projects (many-to-many with customers) |
 | **Job Code** | `job_code_controller.go` | `job-codes/` | CRUD for job codes (linked to customer + project) |
@@ -162,6 +172,7 @@ Timesheet (N) ──→ (1) WorkPeriodConfig
 
 ### Key Model Fields
 
+- **User:** id, email, password, full_name, role, is_system_admin, force_reset_password, status(active/inactive), user_id
 - **Customer:** id, code, name, short_name, status, description, user_id
 - **Project:** id, code, name, start_date, end_date, status, description, user_id, customers[]
 - **JobCode:** id, code, name, type(billable/non-billable), status, customer_id, project_id, user_id
@@ -174,7 +185,9 @@ Timesheet (N) ──→ (1) WorkPeriodConfig
 - **Naming:** snake_case for JSON fields, PascalCase for Go structs, camelCase for TypeScript
 - **API prefix:** `/api/` — all routes under `/api/` group
 - **Auth:** Bearer JWT token in Authorization header
-- **Status pattern:** `active`/`inactive` for master data; `is_confirmed` bool for work periods; `in_progress`/`done` for timesheets
+- **Status pattern:** `active`/`inactive` for master data and users; `is_confirmed` bool for work periods; `in_progress`/`done` for timesheets
+- **Middleware chain:** AuthMiddleware → ForceResetMiddleware → AdminMiddleware
+- **Guards (FE):** guestGuard (public), authGuard (login required), forceResetGuard (blocks if force_reset), resetPageGuard (only if force_reset), adminGuard (system admin only)
 - **Date format:** `YYYY-MM-DD` string in API, `time.Time` in Go
 - **Time format:** `HH:MM` string (start_time/end_time)
 - **Duration:** integer in minutes, calculated from start_time/end_time
