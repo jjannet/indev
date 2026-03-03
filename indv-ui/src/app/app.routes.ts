@@ -70,16 +70,6 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/work/work-period-configs/config-list/config-list').then((m) => m.ConfigListComponent),
       },
-      {
-        path: 'work/work-period-configs/new',
-        loadComponent: () =>
-          import('./pages/work/work-period-configs/config-form/config-form').then((m) => m.ConfigFormComponent),
-      },
-      {
-        path: 'work/work-period-configs/:id',
-        loadComponent: () =>
-          import('./pages/work/work-period-configs/config-form/config-form').then((m) => m.ConfigFormComponent),
-      },
       // Work Logs
       {
         path: 'work/work-logs',

@@ -81,11 +81,10 @@ func main() {
 
 			// Work Period Config routes
 			protected.GET("/work-period-configs", controllers.GetWorkPeriodConfigs)
-			protected.GET("/work-period-configs/default", controllers.GetOrCreateDefaultWorkPeriod)
+			protected.GET("/work-period-configs/year", controllers.GetWorkPeriodsByYear)
 			protected.GET("/work-period-configs/:id", controllers.GetWorkPeriodConfig)
-			protected.POST("/work-period-configs", controllers.CreateWorkPeriodConfig)
 			protected.PUT("/work-period-configs/:id", controllers.UpdateWorkPeriodConfig)
-			protected.DELETE("/work-period-configs/:id", controllers.DeleteWorkPeriodConfig)
+			protected.PUT("/work-period-configs/:id/confirm", controllers.ConfirmWorkPeriod)
 
 			// Work Log routes
 			protected.GET("/work-logs", controllers.GetWorkLogs)

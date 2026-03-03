@@ -1,1 +1,60 @@
 @use '../../../../shared/styles/crud';
+
+.year-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.year-label {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  min-width: 60px;
+  text-align: center;
+}
+
+.month-cell {
+  font-weight: 600;
+}
+
+.inline-date {
+  padding: 0.4rem 0.6rem;
+  background: var(--bg-input);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-family: inherit;
+  box-shadow: 0 0 0 3px var(--accent-shadow);
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.locked-row td {
+  opacity: 0.6;
+}
+
+.status-badge {
+  &.confirmed {
+    background: rgba(34, 197, 94, 0.12);
+    color: #22c55e;
+  }
+  &.pending {
+    background: rgba(245, 158, 11, 0.12);
+    color: #f59e0b;
+  }
+  &.locked {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: rgba(107, 114, 128, 0.12);
+    color: #6b7280;
+  }
+}
+
+.text-muted {
+  color: var(--text-muted);
+}

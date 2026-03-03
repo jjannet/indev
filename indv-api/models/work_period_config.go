@@ -10,9 +10,7 @@ type WorkPeriodConfig struct {
 	Month       int       `json:"month" gorm:"not null;index"`
 	StartDate   time.Time `json:"start_date" gorm:"not null"`
 	EndDate     time.Time `json:"end_date" gorm:"not null"`
-	IsDefault   bool      `json:"is_default" gorm:"default:false"`
-	Status      string    `json:"status" gorm:"default:active;index"`
-	Description string    `json:"description"`
+	IsConfirmed bool      `json:"is_confirmed" gorm:"default:false"`
 	UserID      uint      `json:"user_id" gorm:"not null;index"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`

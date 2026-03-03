@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"indv-api/config"
@@ -12,6 +12,79 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// GetWorkPeriodsByYear auto-generates 12 months for the given year if they don't exist,
+// then returns all 12 months sorted by month ASC.
+func GetWorkPeriodsByYear(c *gin.Context) {
+	userID, ok := helpers.GetUserID(c)
+	if !ok {
+		return
+	}
+
+	yearStr := c.DefaultQuery("year", strconv.Itoa(time.Now().Year()))
+	year, err := strconv.Atoi(yearStr)
+	if err != nil || year < 2000 || year > 2100 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid year"})
+		return
+	}
+
+	// Find which months already exist for this year+user
+	var existing []models.WorkPeriodConfig
+	config.DB.Where("year = ? AND user_id = ?", year, userID).Find(&existing)
+
+	existingMonths := make(map[int]bool)
+	for _, e := range existing {
+		existingMonths[e.Month] = true
+	}
+
+	// Auto-generate any missing months
+	for m := 1; m <= 12; m++ {
+		if existingMonths[m] {
+			continue
+		}
+		startDate := time.Date(year, time.Month(m), 1, 0, 0, 0, 0, time.UTC)
+		endDate := startDate.AddDate(0, 1, -1)
+		cfg := models.WorkPeriodConfig{
+			Year:        year,
+			Month:       m,
+			StartDate:   startDate,
+			EndDate:     endDate,
+			IsConfirmed: false,
+			UserID:      userID,
+		}
+		config.DB.Create(&cfg)
+	}
+
+	// Fetch all 12 months
+	var configs []models.WorkPeriodConfig
+	config.DB.Where("year = ? AND user_id = ?", year, userID).
+		Order("month ASC").
+		Find(&configs)
+
+	// For each month, check if its timesheet is done (locked)
+	type PeriodWithLock struct {
+		models.WorkPeriodConfig
+		IsLocked bool `json:"is_locked"`
+	}
+
+	result := make([]PeriodWithLock, 0, len(configs))
+	for _, cfg := range configs {
+		var ts models.Timesheet
+		locked := false
+		if err := config.DB.Where("work_period_id = ? AND user_id = ?", cfg.ID, userID).First(&ts).Error; err == nil {
+			if ts.Status == "done" {
+				locked = true
+			}
+		}
+		result = append(result, PeriodWithLock{
+			WorkPeriodConfig: cfg,
+			IsLocked:         locked,
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": result})
+}
+
+// GetWorkPeriodConfigs returns paginated list (kept for backward compatibility with work-log dropdown)
 func GetWorkPeriodConfigs(c *gin.Context) {
 	userID, ok := helpers.GetUserID(c)
 	if !ok {
@@ -24,8 +97,10 @@ func GetWorkPeriodConfigs(c *gin.Context) {
 
 	query := config.DB.Where("user_id = ?", userID)
 
-	if params.Status != "" {
-		query = query.Where("status = ?", params.Status)
+	if params.Status == "confirmed" {
+		query = query.Where("is_confirmed = ?", true)
+	} else if params.Status == "pending" {
+		query = query.Where("is_confirmed = ?", false)
 	}
 
 	year := c.Query("year")
@@ -43,6 +118,7 @@ func GetWorkPeriodConfigs(c *gin.Context) {
 	c.JSON(http.StatusOK, helpers.NewPaginatedResponse(configs, total, params))
 }
 
+// GetWorkPeriodConfig returns a single work period config by ID
 func GetWorkPeriodConfig(c *gin.Context) {
 	userID, ok := helpers.GetUserID(c)
 	if !ok {
@@ -57,120 +133,7 @@ func GetWorkPeriodConfig(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": cfg})
 }
 
-func GetOrCreateDefaultWorkPeriod(c *gin.Context) {
-	userID, ok := helpers.GetUserID(c)
-	if !ok {
-		return
-	}
-
-	year := c.Query("year")
-	month := c.Query("month")
-	if year == "" || month == "" {
-		now := time.Now()
-		year = fmt.Sprintf("%d", now.Year())
-		month = fmt.Sprintf("%d", int(now.Month()))
-	}
-
-	var cfg models.WorkPeriodConfig
-	err := config.DB.Where("year = ? AND month = ? AND user_id = ? AND status = ?",
-		year, month, userID, "active").First(&cfg).Error
-
-	if err != nil {
-		y, _ := time.Parse("2006", year)
-		m, _ := time.Parse("1", month)
-		startDate := time.Date(y.Year(), m.Month(), 1, 0, 0, 0, 0, time.UTC)
-		endDate := startDate.AddDate(0, 1, -1)
-
-		cfg = models.WorkPeriodConfig{
-			Year:      y.Year(),
-			Month:     int(m.Month()),
-			StartDate: startDate,
-			EndDate:   endDate,
-			IsDefault: true,
-			Status:    "active",
-			UserID:    userID,
-		}
-		config.DB.Create(&cfg)
-	}
-
-	c.JSON(http.StatusOK, gin.H{"data": cfg})
-}
-
-func CreateWorkPeriodConfig(c *gin.Context) {
-	userID, ok := helpers.GetUserID(c)
-	if !ok {
-		return
-	}
-
-	var input struct {
-		Year        int    `json:"year" binding:"required"`
-		Month       int    `json:"month" binding:"required"`
-		StartDate   string `json:"start_date" binding:"required"`
-		EndDate     string `json:"end_date" binding:"required"`
-		IsDefault   bool   `json:"is_default"`
-		Status      string `json:"status"`
-		Description string `json:"description"`
-	}
-
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Year, Month, StartDate and EndDate are required"})
-		return
-	}
-
-	if input.Month < 1 || input.Month > 12 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Month must be between 1 and 12"})
-		return
-	}
-
-	startDate, err := time.Parse("2006-01-02", input.StartDate)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start_date format (use YYYY-MM-DD)"})
-		return
-	}
-	endDate, err := time.Parse("2006-01-02", input.EndDate)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end_date format (use YYYY-MM-DD)"})
-		return
-	}
-
-	if endDate.Before(startDate) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "end_date must be after start_date"})
-		return
-	}
-
-	var overlap int64
-	config.DB.Model(&models.WorkPeriodConfig{}).
-		Where("year = ? AND month = ? AND user_id = ? AND status = ?",
-			input.Year, input.Month, userID, "active").
-		Where("(start_date <= ? AND end_date >= ?)", endDate, startDate).
-		Count(&overlap)
-	if overlap > 0 {
-		c.JSON(http.StatusConflict, gin.H{"error": "Overlapping work period config exists for this month"})
-		return
-	}
-
-	cfg := models.WorkPeriodConfig{
-		Year:        input.Year,
-		Month:       input.Month,
-		StartDate:   startDate,
-		EndDate:     endDate,
-		IsDefault:   input.IsDefault,
-		Status:      "active",
-		Description: input.Description,
-		UserID:      userID,
-	}
-	if input.Status != "" {
-		cfg.Status = input.Status
-	}
-
-	if err := config.DB.Create(&cfg).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create work period config"})
-		return
-	}
-
-	c.JSON(http.StatusCreated, gin.H{"data": cfg})
-}
-
+// UpdateWorkPeriodConfig updates start_date and/or end_date for a work period
 func UpdateWorkPeriodConfig(c *gin.Context) {
 	userID, ok := helpers.GetUserID(c)
 	if !ok {
@@ -183,14 +146,18 @@ func UpdateWorkPeriodConfig(c *gin.Context) {
 		return
 	}
 
+	// Check if timesheet is done → locked
+	var ts models.Timesheet
+	if err := config.DB.Where("work_period_id = ? AND user_id = ?", cfg.ID, userID).First(&ts).Error; err == nil {
+		if ts.Status == "done" {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Cannot modify a locked work period (timesheet is done)"})
+			return
+		}
+	}
+
 	var input struct {
-		Year        int    `json:"year"`
-		Month       int    `json:"month"`
-		StartDate   string `json:"start_date"`
-		EndDate     string `json:"end_date"`
-		IsDefault   *bool  `json:"is_default"`
-		Status      string `json:"status"`
-		Description string `json:"description"`
+		StartDate string `json:"start_date"`
+		EndDate   string `json:"end_date"`
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -198,66 +165,53 @@ func UpdateWorkPeriodConfig(c *gin.Context) {
 		return
 	}
 
-	updates := map[string]interface{}{}
-
-	year := cfg.Year
-	month := cfg.Month
 	startDate := cfg.StartDate
 	endDate := cfg.EndDate
 
-	if input.Year > 0 {
-		year = input.Year
-		updates["year"] = input.Year
-	}
-	if input.Month >= 1 && input.Month <= 12 {
-		month = input.Month
-		updates["month"] = input.Month
-	}
 	if input.StartDate != "" {
 		t, err := time.Parse("2006-01-02", input.StartDate)
-		if err == nil {
-			startDate = t
-			updates["start_date"] = t
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start_date format (use YYYY-MM-DD)"})
+			return
 		}
+		// Validate: start_date must be in the same month
+		if int(t.Month()) != cfg.Month || t.Year() != cfg.Year {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "start_date must be within the same month"})
+			return
+		}
+		startDate = t
 	}
+
 	if input.EndDate != "" {
 		t, err := time.Parse("2006-01-02", input.EndDate)
-		if err == nil {
-			endDate = t
-			updates["end_date"] = t
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end_date format (use YYYY-MM-DD)"})
+			return
 		}
-	}
-	if input.IsDefault != nil {
-		updates["is_default"] = *input.IsDefault
-	}
-	if input.Status != "" {
-		updates["status"] = input.Status
-	}
-	if input.Description != "" {
-		updates["description"] = input.Description
+		// Validate: end_date must be in the same month
+		if int(t.Month()) != cfg.Month || t.Year() != cfg.Year {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "end_date must be within the same month"})
+			return
+		}
+		endDate = t
 	}
 
 	if endDate.Before(startDate) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "end_date must be after start_date"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "end_date must be >= start_date"})
 		return
 	}
 
-	var overlap int64
-	config.DB.Model(&models.WorkPeriodConfig{}).
-		Where("year = ? AND month = ? AND user_id = ? AND status = ? AND id != ?",
-			year, month, userID, "active", cfg.ID).
-		Where("(start_date <= ? AND end_date >= ?)", endDate, startDate).
-		Count(&overlap)
-	if overlap > 0 {
-		c.JSON(http.StatusConflict, gin.H{"error": "Overlapping work period config exists for this month"})
-		return
-	}
+	config.DB.Model(&cfg).Updates(map[string]interface{}{
+		"start_date": startDate,
+		"end_date":   endDate,
+	})
 
-	config.DB.Model(&cfg).Updates(updates)
+	config.DB.First(&cfg, cfg.ID)
 	c.JSON(http.StatusOK, gin.H{"data": cfg})
 }
 
-func DeleteWorkPeriodConfig(c *gin.Context) {
+// ConfirmWorkPeriod sets is_confirmed = true
+func ConfirmWorkPeriod(c *gin.Context) {
 	userID, ok := helpers.GetUserID(c)
 	if !ok {
 		return
@@ -269,6 +223,16 @@ func DeleteWorkPeriodConfig(c *gin.Context) {
 		return
 	}
 
-	config.DB.Model(&cfg).Update("status", "inactive")
-	c.JSON(http.StatusOK, gin.H{"message": "Work Period Config deactivated"})
+	// Check if timesheet is done → locked
+	var ts models.Timesheet
+	if err := config.DB.Where("work_period_id = ? AND user_id = ?", cfg.ID, userID).First(&ts).Error; err == nil {
+		if ts.Status == "done" {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Cannot modify a locked work period (timesheet is done)"})
+			return
+		}
+	}
+
+	config.DB.Model(&cfg).Update("is_confirmed", true)
+	cfg.IsConfirmed = true
+	c.JSON(http.StatusOK, gin.H{"data": cfg})
 }

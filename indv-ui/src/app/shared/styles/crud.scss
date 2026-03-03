@@ -155,6 +155,10 @@
   tr:hover td {
     background: var(--bg-hover);
   }
+
+  tr.clickable-row {
+    cursor: pointer;
+  }
 }
 
 .actions-cell {

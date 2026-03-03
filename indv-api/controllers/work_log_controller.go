@@ -50,11 +50,11 @@ func calcDuration(startTime, endTime string) (int, error) {
 func isDateInWorkPeriod(date time.Time, userID uint) error {
 	var wp models.WorkPeriodConfig
 	result := config.DB.Where(
-		"user_id = ? AND status = ? AND start_date <= ? AND end_date >= ?",
-		userID, "active", date, date,
+		"user_id = ? AND is_confirmed = ? AND start_date <= ? AND end_date >= ?",
+		userID, true, date, date,
 	).First(&wp)
 	if result.Error != nil {
-		return fmt.Errorf("date is not within any active work period")
+		return fmt.Errorf("date is not within any confirmed work period")
 	}
 	return nil
 }
@@ -62,8 +62,8 @@ func isDateInWorkPeriod(date time.Time, userID uint) error {
 func isTimesheetLocked(date time.Time, userID uint) bool {
 	var wp models.WorkPeriodConfig
 	result := config.DB.Where(
-		"user_id = ? AND status = ? AND start_date <= ? AND end_date >= ?",
-		userID, "active", date, date,
+		"user_id = ? AND is_confirmed = ? AND start_date <= ? AND end_date >= ?",
+		userID, true, date, date,
 	).First(&wp)
 	if result.Error != nil {
 		return false
@@ -135,7 +135,7 @@ func GetWorkLogs(c *gin.Context) {
 
 	var logs []models.WorkLog
 	query.Preload("Project").Preload("Customer").Preload("JobCode").
-		Order("work_logs.date DESC, work_logs.start_time ASC").
+		Order("work_logs.date ASC, work_logs.start_time ASC").
 		Offset(params.Offset()).Limit(params.PageSize).
 		Find(&logs)
 

@@ -9,9 +9,8 @@ export interface WorkPeriodConfig {
   month: number;
   start_date: string;
   end_date: string;
-  is_default: boolean;
-  status: string;
-  description: string;
+  is_confirmed: boolean;
+  is_locked: boolean;
   user_id: number;
   created_at: string;
   updated_at: string;
@@ -39,26 +38,21 @@ export class WorkPeriodConfigService {
     return this.http.get<PaginatedResponse<WorkPeriodConfig>>(this.url, { params: httpParams });
   }
 
+  getByYear(year: number): Observable<{ data: WorkPeriodConfig[] }> {
+    return this.http.get<{ data: WorkPeriodConfig[] }>(`${this.url}/year`, {
+      params: { year: year.toString() },
+    });
+  }
+
   getById(id: number): Observable<{ data: WorkPeriodConfig }> {
     return this.http.get<{ data: WorkPeriodConfig }>(`${this.url}/${id}`);
-  }
-
-  getDefault(year?: number, month?: number): Observable<{ data: WorkPeriodConfig }> {
-    let httpParams = new HttpParams();
-    if (year) httpParams = httpParams.set('year', year.toString());
-    if (month) httpParams = httpParams.set('month', month.toString());
-    return this.http.get<{ data: WorkPeriodConfig }>(`${this.url}/default`, { params: httpParams });
-  }
-
-  create(data: Record<string, unknown>): Observable<{ data: WorkPeriodConfig }> {
-    return this.http.post<{ data: WorkPeriodConfig }>(this.url, data);
   }
 
   update(id: number, data: Record<string, unknown>): Observable<{ data: WorkPeriodConfig }> {
     return this.http.put<{ data: WorkPeriodConfig }>(`${this.url}/${id}`, data);
   }
 
-  delete(id: number): Observable<{ message: string }> {
-    return this.http.delete<{ message: string }>(`${this.url}/${id}`);
+  confirm(id: number): Observable<{ data: WorkPeriodConfig }> {
+    return this.http.put<{ data: WorkPeriodConfig }>(`${this.url}/${id}/confirm`, {});
   }
 }

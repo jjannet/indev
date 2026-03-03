@@ -56,7 +56,7 @@ export class DashboardComponent implements OnInit {
   }
 
   private loadTimesheetStatus(): void {
-    this.wpService.getAll({ page_size: '100', status: 'active' }).subscribe((r) => {
+    this.wpService.getAll({ page_size: '100', status: 'confirmed' }).subscribe((r) => {
       const now = new Date();
       const current = (r.data || []).find(
         (p) => p.year === now.getFullYear() && p.month === now.getMonth() + 1,

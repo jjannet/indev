@@ -42,7 +42,7 @@ export class TimesheetViewComponent implements OnInit {
   }
 
   loadPeriods(): void {
-    this.wpService.getAll({ page_size: '100', status: 'active' }).subscribe((r) => {
+    this.wpService.getAll({ page_size: '100', status: 'confirmed' }).subscribe((r) => {
       const periods = (r.data || []).sort((a, b) => {
         if (a.year !== b.year) return b.year - a.year;
         return b.month - a.month;
