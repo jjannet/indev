@@ -1,0 +1,77 @@
+<div class="page-header">
+  <h1>{{ isEdit() ? 'Edit Work Period Config' : 'New Work Period Config' }}</h1>
+  <button class="btn btn-secondary" (click)="goBack()">
+    <lucide-icon [img]="icons.ArrowLeft" [size]="18"></lucide-icon>
+    Back
+  </button>
+</div>
+
+@if (error()) {
+  <div class="error-message">{{ error() }}</div>
+}
+
+@if (loading()) {
+  <p>Loading...</p>
+} @else {
+  <div class="form-card">
+    <form (ngSubmit)="onSubmit()" #f="ngForm">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="year">Year *</label>
+          <select id="year" [(ngModel)]="form.year" name="year" required (change)="onYearMonthChange()">
+            @for (y of years; track y) {
+              <option [ngValue]="y">{{ y }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="month">Month *</label>
+          <select id="month" [(ngModel)]="form.month" name="month" required (change)="onYearMonthChange()">
+            @for (m of months; track m.value) {
+              <option [ngValue]="m.value">{{ m.label }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="start_date">Start Date *</label>
+          <input id="start_date" type="date" [(ngModel)]="form.start_date" name="start_date" required />
+        </div>
+
+        <div class="form-group">
+          <label for="end_date">End Date *</label>
+          <input id="end_date" type="date" [(ngModel)]="form.end_date" name="end_date" required />
+        </div>
+
+        <div class="form-group">
+          <label for="status">Status</label>
+          <select id="status" [(ngModel)]="form.status" name="status">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-inline">
+            <input type="checkbox" [(ngModel)]="form.is_default" name="is_default" />
+            Is Default Period
+          </label>
+        </div>
+
+        <div class="form-group full-width">
+          <label for="description">Description</label>
+          <textarea id="description" [(ngModel)]="form.description" name="description" rows="3"></textarea>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="f.invalid || saving()">
+          <lucide-icon [img]="icons.Save" [size]="18"></lucide-icon>
+          {{ saving() ? 'Saving...' : 'Save' }}
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="goBack()">Cancel</button>
+      </div>
+    </form>
+  </div>
+}

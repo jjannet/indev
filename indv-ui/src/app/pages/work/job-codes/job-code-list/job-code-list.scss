@@ -1,0 +1,18 @@
+@use '../../../../shared/styles/crud';
+
+.type-badge {
+  display: inline-flex;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+
+  &.billable {
+    background: rgba(99, 102, 241, 0.12);
+    color: #6366f1;
+  }
+  &.non-billable {
+    background: rgba(107, 114, 128, 0.12);
+    color: #6b7280;
+  }
+}

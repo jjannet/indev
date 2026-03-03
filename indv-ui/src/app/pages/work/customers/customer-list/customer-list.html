@@ -1,0 +1,86 @@
+<div class="page-header">
+  <h1>Customers</h1>
+  <button class="btn btn-primary" (click)="create()">
+    <lucide-icon [img]="icons.Plus" [size]="18"></lucide-icon>
+    Add Customer
+  </button>
+</div>
+
+<div class="filters-bar">
+  <input
+    class="search-input"
+    type="text"
+    placeholder="Search by name or code..."
+    [(ngModel)]="search"
+    (keyup.enter)="onSearch()"
+  />
+  <select class="filter-select" [(ngModel)]="statusFilter" (change)="onFilterStatus()">
+    <option value="">All Status</option>
+    <option value="active">Active</option>
+    <option value="inactive">Inactive</option>
+  </select>
+</div>
+
+<table class="data-table">
+  <thead>
+    <tr>
+      <th (click)="sort('code')">
+        Code
+        <span class="sort-icon" [class.active]="sortBy === 'code'">&varr;</span>
+      </th>
+      <th (click)="sort('name')">
+        Name
+        <span class="sort-icon" [class.active]="sortBy === 'name'">&varr;</span>
+      </th>
+      <th>Short Name</th>
+      <th (click)="sort('status')">
+        Status
+        <span class="sort-icon" [class.active]="sortBy === 'status'">&varr;</span>
+      </th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    @if (loading()) {
+      <tr><td colspan="5" class="empty-row">Loading...</td></tr>
+    } @else if (data().length === 0) {
+      <tr><td colspan="5" class="empty-row">No customers found</td></tr>
+    } @else {
+      @for (item of data(); track item.id) {
+        <tr>
+          <td>{{ item.code }}</td>
+          <td>{{ item.name }}</td>
+          <td>{{ item.short_name }}</td>
+          <td><span class="status-badge" [class]="item.status">{{ item.status }}</span></td>
+          <td>
+            <div class="actions-cell">
+              <button class="btn btn-secondary btn-sm" (click)="edit(item.id)">
+                <lucide-icon [img]="icons.Pencil" [size]="14"></lucide-icon>
+              </button>
+              <button class="btn btn-danger btn-sm" (click)="remove(item)" [disabled]="item.status === 'inactive'">
+                <lucide-icon [img]="icons.Trash2" [size]="14"></lucide-icon>
+              </button>
+            </div>
+          </td>
+        </tr>
+      }
+    }
+  </tbody>
+</table>
+
+@if (totalPages() > 1) {
+  <div class="pagination">
+    <div class="pagination-info">Showing page {{ page() }} of {{ totalPages() }} ({{ total() }} records)</div>
+    <div class="pagination-buttons">
+      <button class="page-btn" [disabled]="page() <= 1" (click)="goToPage(page() - 1)">
+        <lucide-icon [img]="icons.ChevronLeft" [size]="14"></lucide-icon>
+      </button>
+      @for (p of pages; track p) {
+        <button class="page-btn" [class.active]="p === page()" (click)="goToPage(p)">{{ p }}</button>
+      }
+      <button class="page-btn" [disabled]="page() >= totalPages()" (click)="goToPage(page() + 1)">
+        <lucide-icon [img]="icons.ChevronRight" [size]="14"></lucide-icon>
+      </button>
+    </div>
+  </div>
+}

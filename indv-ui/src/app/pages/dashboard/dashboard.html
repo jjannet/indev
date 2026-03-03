@@ -1,0 +1,33 @@
+<div class="dashboard">
+  <h1 class="dashboard-title">Dashboard</h1>
+  <p class="dashboard-subtitle">Welcome back! Here's an overview of your system.</p>
+
+  <div class="stats-grid">
+    @for (stat of stats; track stat.label) {
+      <div class="stat-card">
+        <div class="stat-icon" [style.background]="stat.color + '15'" [style.color]="stat.color">
+          <lucide-icon [img]="stat.icon" [size]="24"></lucide-icon>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ stat.value }}</span>
+          <span class="stat-label">{{ stat.label }}</span>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="content-grid">
+    <div class="card">
+      <h3 class="card-title">Recent Activity</h3>
+      <div class="card-body">
+        <p class="empty-state">No recent activity to display.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h3 class="card-title">Quick Actions</h3>
+      <div class="card-body">
+        <p class="empty-state">Configure your quick actions in settings.</p>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,24 @@
+<header class="header">
+  <div class="header-left">
+    <h2 class="page-title">Admin Panel</h2>
+  </div>
+
+  <div class="header-right">
+    <button class="header-btn" (click)="themeService.toggle()" title="Toggle theme">
+      @if (themeService.theme() === 'dark') {
+        <lucide-icon [img]="icons.Sun" [size]="20"></lucide-icon>
+      } @else {
+        <lucide-icon [img]="icons.Moon" [size]="20"></lucide-icon>
+      }
+    </button>
+
+    <div class="user-info">
+      <lucide-icon [img]="icons.User" [size]="18"></lucide-icon>
+      <span>{{ authService.currentUser()?.full_name || authService.currentUser()?.email }}</span>
+    </div>
+
+    <button class="header-btn logout-btn" (click)="logout()" title="Logout">
+      <lucide-icon [img]="icons.LogOut" [size]="20"></lucide-icon>
+    </button>
+  </div>
+</header>

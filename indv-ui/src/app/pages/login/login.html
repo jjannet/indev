@@ -1,0 +1,67 @@
+<div class="login-wrapper">
+  <button class="theme-toggle" (click)="themeService.toggle()" type="button">
+    @if (themeService.theme() === 'dark') {
+      <lucide-icon [img]="icons.Sun" [size]="20"></lucide-icon>
+    } @else {
+      <lucide-icon [img]="icons.Moon" [size]="20"></lucide-icon>
+    }
+  </button>
+
+  <div class="login-card">
+    <div class="login-header">
+      <h1>INDEV</h1>
+      <p>Sign in to your account</p>
+    </div>
+
+    @if (error()) {
+      <div class="error-message">{{ error() }}</div>
+    }
+
+    <form (ngSubmit)="onSubmit()" class="login-form">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input
+          id="email"
+          type="email"
+          [(ngModel)]="email"
+          name="email"
+          placeholder="admin@indev.com"
+          required
+          autocomplete="email"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="password-field">
+          <input
+            id="password"
+            [type]="showPassword() ? 'text' : 'password'"
+            [(ngModel)]="password"
+            name="password"
+            placeholder="Enter your password"
+            required
+            autocomplete="current-password"
+          />
+          <button type="button" class="password-toggle" (click)="togglePassword()">
+            @if (showPassword()) {
+              <lucide-icon [img]="icons.EyeOff" [size]="18"></lucide-icon>
+            } @else {
+              <lucide-icon [img]="icons.Eye" [size]="18"></lucide-icon>
+            }
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-login" [disabled]="loading() || !email || !password">
+        @if (loading()) {
+          <span class="spinner"></span>
+          Signing in...
+        } @else {
+          <lucide-icon [img]="icons.LogIn" [size]="18"></lucide-icon>
+          Sign In
+        }
+      </button>
+    </form>
+  </div>
+</div>

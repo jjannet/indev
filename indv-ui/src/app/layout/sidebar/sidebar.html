@@ -1,0 +1,45 @@
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <span class="brand-text">INDEV</span>
+  </div>
+
+  <nav class="sidebar-nav">
+    @for (item of menuItems; track item.route) {
+      <a
+        [routerLink]="item.route"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: item.exact }"
+        class="nav-item"
+      >
+        <lucide-icon [img]="item.icon" [size]="20"></lucide-icon>
+        <span>{{ item.label }}</span>
+      </a>
+    }
+
+    <div class="nav-group">
+      <button class="nav-group-header" (click)="toggleWork()">
+        <lucide-icon [img]="icons.Briefcase" [size]="20"></lucide-icon>
+        <span>Work</span>
+        <lucide-icon
+          class="chevron"
+          [img]="workExpanded() ? icons.ChevronDown : icons.ChevronRight"
+          [size]="16"
+        ></lucide-icon>
+      </button>
+      @if (workExpanded()) {
+        <div class="nav-group-items">
+          @for (item of workMenuItems; track item.route) {
+            <a
+              [routerLink]="item.route"
+              routerLinkActive="active"
+              class="nav-item sub-item"
+            >
+              <lucide-icon [img]="item.icon" [size]="18"></lucide-icon>
+              <span>{{ item.label }}</span>
+            </a>
+          }
+        </div>
+      }
+    </div>
+  </nav>
+</aside>

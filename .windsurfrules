@@ -1,0 +1,33 @@
+# Project Tech Stack & Rules (Windsurf Context)
+
+## 🛠 Tech Stack
+- **Backend:** Go (Golang)
+- **Web Framework:** Gin Gonic (`github.com/gin-gonic/gin`)
+- **Database:** PostgreSQL (**Installed Natively on Host Machine**, NOT in Docker)
+- **Frontend:** Angular (Standalone Components)
+- **Containerization:** API runs inside Docker, Database runs on Host OS
+
+## 🗄 Database Connection (Host-to-Docker)
+- **Database Host:** Use `host.docker.internal` to connect from Docker container to Host machine.
+- **Port:** 5432
+- **Connection String Format:** `postgres://<username>:<password>@host.docker.internal:5432/<database_name>?sslmode=disable`
+- **GORM/Driver:** Use `pgx` or `postgres` driver for Go.
+- **Rule:** Do not create a PostgreSQL service in `docker-compose.yml`. Always point to the host machine.
+
+## 🐳 Docker Configuration
+- **API Service:** Must include `extra_hosts: - "host.docker.internal:host-gateway"` in `docker-compose.yml` to allow communication with the local DB.
+- **Volumes:** Map a local folder (e.g., `./uploads`) to `/app/uploads` for persistent file storage.
+
+## 🌐 Network & VPN Handling
+- **API Base URL:** Use environment variables (e.g., `API_URL`) in Angular to switch between `localhost` (for local dev) and the machine's IP (when accessed via VPN).
+- **CORS:** Gin backend must allow CORS for the Angular frontend (default port 4200).
+
+## 📂 File Management
+- Store uploaded files in a dedicated local directory.
+- The Go backend should serve these files as static assets.
+- Implementation: Use `router.Static("/uploads", "./uploads")` in Gin.
+
+## 📝 Coding Standards
+- **Go:** Use a modular structure (e.g., Controllers, Services, Models).
+- **Angular:** Use `HttpClient` with an Interceptor for API prefixing.
+- **Errors:** Always return JSON error responses from Gin (e.g., `{"error": "message"}`).

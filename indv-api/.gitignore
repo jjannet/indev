@@ -1,0 +1,8 @@
+.env
+uploads/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+tmp/

@@ -1,0 +1,80 @@
+<div class="page-header">
+  <h1>Work Period Configs</h1>
+  <button class="btn btn-primary" (click)="create()">
+    <lucide-icon [img]="icons.Plus" [size]="18"></lucide-icon>
+    Add Config
+  </button>
+</div>
+
+<div class="filters-bar">
+  <select class="filter-select" [(ngModel)]="yearFilter" (change)="onFilter()">
+    <option value="">All Years</option>
+    @for (y of years; track y) {
+      <option [value]="y">{{ y }}</option>
+    }
+  </select>
+  <select class="filter-select" [(ngModel)]="statusFilter" (change)="onFilter()">
+    <option value="">All Status</option>
+    <option value="active">Active</option>
+    <option value="inactive">Inactive</option>
+  </select>
+</div>
+
+<table class="data-table">
+  <thead>
+    <tr>
+      <th>Year</th>
+      <th>Month</th>
+      <th>Start Date</th>
+      <th>End Date</th>
+      <th>Default</th>
+      <th>Status</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    @if (loading()) {
+      <tr><td colspan="7" class="empty-row">Loading...</td></tr>
+    } @else if (data().length === 0) {
+      <tr><td colspan="7" class="empty-row">No configs found</td></tr>
+    } @else {
+      @for (item of data(); track item.id) {
+        <tr>
+          <td>{{ item.year }}</td>
+          <td>{{ monthName(item.month) }}</td>
+          <td>{{ formatDate(item.start_date) }}</td>
+          <td>{{ formatDate(item.end_date) }}</td>
+          <td>{{ item.is_default ? 'Yes' : 'No' }}</td>
+          <td><span class="status-badge" [class]="item.status">{{ item.status }}</span></td>
+          <td>
+            <div class="actions-cell">
+              <button class="btn btn-secondary btn-sm" title="Edit" (click)="edit(item.id)">
+                <lucide-icon [img]="icons.Pencil" [size]="14"></lucide-icon>
+              </button>
+              <button class="btn btn-danger btn-sm" title="Deactivate" (click)="remove(item)" [disabled]="item.status === 'inactive'">
+                <lucide-icon [img]="icons.Trash2" [size]="14"></lucide-icon>
+              </button>
+            </div>
+          </td>
+        </tr>
+      }
+    }
+  </tbody>
+</table>
+
+@if (totalPages() > 1) {
+  <div class="pagination">
+    <div class="pagination-info">Showing page {{ page() }} of {{ totalPages() }} ({{ total() }} records)</div>
+    <div class="pagination-buttons">
+      <button class="page-btn" [disabled]="page() <= 1" (click)="goToPage(page() - 1)">
+        <lucide-icon [img]="icons.ChevronLeft" [size]="14"></lucide-icon>
+      </button>
+      @for (p of pages; track p) {
+        <button class="page-btn" [class.active]="p === page()" (click)="goToPage(p)">{{ p }}</button>
+      }
+      <button class="page-btn" [disabled]="page() >= totalPages()" (click)="goToPage(page() + 1)">
+        <lucide-icon [img]="icons.ChevronRight" [size]="14"></lucide-icon>
+      </button>
+    </div>
+  </div>
+}
