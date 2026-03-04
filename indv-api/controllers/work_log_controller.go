@@ -135,7 +135,7 @@ func GetWorkLogs(c *gin.Context) {
 
 	var logs []models.WorkLog
 	query.Preload("Project").Preload("Customer").Preload("JobCode").
-		Order("work_logs.date ASC, work_logs.start_time ASC").
+		Order("work_logs.date DESC, work_logs.start_time DESC").
 		Offset(params.Offset()).Limit(params.PageSize).
 		Find(&logs)
 

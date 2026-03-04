@@ -1,15 +1,25 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
   LucideAngularModule, Plus, Pencil, Trash2, Copy, ChevronLeft, ChevronRight, Clock,
+  ChevronDown, ChevronUp,
 } from 'lucide-angular';
 import { WorkLogService, WorkLog, WorkLogSummary } from '../../../../services/work-log.service';
 import { WorkPeriodConfigService, WorkPeriodConfig } from '../../../../services/work-period-config.service';
 import { ProjectService, Project } from '../../../../services/project.service';
 import { CustomerService, Customer } from '../../../../services/customer.service';
 import { TimesheetService } from '../../../../services/timesheet.service';
+
+export interface DateGroup {
+  date: string;
+  label: string;
+  totalDuration: number;
+  count: number;
+  expanded: boolean;
+  logs: WorkLog[];
+}
 
 @Component({
   selector: 'app-work-log-list',
@@ -19,7 +29,9 @@ import { TimesheetService } from '../../../../services/timesheet.service';
   styleUrl: './work-log-list.scss',
 })
 export class WorkLogListComponent implements OnInit {
-  readonly icons = { Plus, Pencil, Trash2, Copy, ChevronLeft, ChevronRight, Clock };
+  readonly icons = { Plus, Pencil, Trash2, Copy, ChevronLeft, ChevronRight, Clock, ChevronDown, ChevronUp };
+
+  private readonly thaiDays = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
 
   data = signal<WorkLog[]>([]);
   total = signal(0);
@@ -39,6 +51,8 @@ export class WorkLogListComponent implements OnInit {
   projectFilter = '';
   customerFilter = '';
   statusFilter = '';
+
+  dateGroups = signal<DateGroup[]>([]);
 
   constructor(
     private readonly workLogService: WorkLogService,
@@ -93,13 +107,52 @@ export class WorkLogListComponent implements OnInit {
       status: this.statusFilter,
     }).subscribe({
       next: (res) => {
-        this.data.set(res.data || []);
+        const logs = res.data || [];
+        this.data.set(logs);
         this.total.set(res.total);
         this.totalPages.set(res.total_pages);
+        this.buildGroups(logs);
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
     });
+  }
+
+  private buildGroups(logs: WorkLog[]): void {
+    const map = new Map<string, WorkLog[]>();
+    for (const log of logs) {
+      const key = log.date.substring(0, 10);
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(log);
+    }
+
+    const groups: DateGroup[] = [];
+    let first = true;
+    for (const [date, items] of map) {
+      groups.push({
+        date,
+        label: this.formatGroupDate(date),
+        totalDuration: items.reduce((sum, l) => sum + (l.duration || 0), 0),
+        count: items.length,
+        expanded: first,
+        logs: items,
+      });
+      first = false;
+    }
+    this.dateGroups.set(groups);
+  }
+
+  private formatGroupDate(dateStr: string): string {
+    const d = new Date(dateStr + 'T00:00:00');
+    const dd = d.getDate().toString().padStart(2, '0');
+    const mm = (d.getMonth() + 1).toString().padStart(2, '0');
+    const yyyy = d.getFullYear();
+    const dayName = this.thaiDays[d.getDay()];
+    return `${dd}/${mm}/${yyyy} (${dayName})`;
+  }
+
+  toggleGroup(group: DateGroup): void {
+    group.expanded = !group.expanded;
   }
 
   loadSummary(): void {
@@ -142,7 +195,8 @@ export class WorkLogListComponent implements OnInit {
   }
 
   remove(item: WorkLog): void {
-    if (!confirm(`Delete work log "${item.description}"?`)) return;
+    const plain = this.stripHtml(item.description).substring(0, 50);
+    if (!confirm(`Delete work log "${plain}"?`)) return;
     this.workLogService.delete(item.id).subscribe(() => this.loadAll());
   }
 
@@ -156,14 +210,32 @@ export class WorkLogListComponent implements OnInit {
     return p;
   }
 
+  get colSpan(): number {
+    return this.isLocked ? 8 : 9;
+  }
+
   formatDuration(mins: number): string {
     const h = Math.floor(mins / 60);
     const m = mins % 60;
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
   }
 
-  formatDate(d: string): string {
-    return d ? d.substring(0, 10) : '-';
+  formatGroupDuration(mins: number): string {
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return `${h}:${m.toString().padStart(2, '0')}`;
+  }
+
+  stripHtml(html: string): string {
+    if (!html) return '';
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || '';
+  }
+
+  truncateDescription(html: string, max = 50): string {
+    const plain = this.stripHtml(html);
+    return plain.length > max ? plain.substring(0, max) + '...' : plain;
   }
 
   periodLabel(p: WorkPeriodConfig): string {

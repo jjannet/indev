@@ -54,60 +54,80 @@
   </div>
 }
 
-<table class="data-table">
-  <thead>
-    <tr>
-      <th>Date</th>
-      <th>Start</th>
-      <th>End</th>
-      <th>Duration</th>
-      <th>Project</th>
-      <th>Customer</th>
-      <th>Job Code</th>
-      <th>Ref ID</th>
-      <th>Status</th>
-      @if (!isLocked) {
-        <th>Actions</th>
+@if (loading()) {
+  <div class="loading-state">Loading...</div>
+} @else if (data().length === 0) {
+  <div class="empty-state">No work logs found</div>
+} @else {
+  @for (group of dateGroups(); track group.date) {
+    <div class="date-group">
+      <div class="date-group-header" (click)="toggleGroup(group)">
+        <div class="date-group-left">
+          <lucide-icon [img]="group.expanded ? icons.ChevronDown : icons.ChevronRight" [size]="18"></lucide-icon>
+          <span class="date-group-date">{{ group.label }}</span>
+        </div>
+        <div class="date-group-right">
+          <span class="date-group-count">{{ group.count }} รายการ</span>
+          <span class="date-group-duration">
+            <lucide-icon [img]="icons.Clock" [size]="14"></lucide-icon>
+            รวม {{ formatGroupDuration(group.totalDuration) }} ชม.
+          </span>
+        </div>
+      </div>
+
+      @if (group.expanded) {
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Duration</th>
+              <th>Project</th>
+              <th>Description</th>
+              <th>Job Code</th>
+              <th>Ref ID</th>
+              <th>Status</th>
+              @if (!isLocked) {
+                <th>Actions</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of group.logs; track item.id) {
+              <tr (dblclick)="edit(item.id)" class="clickable-row">
+                <td class="nowrap">{{ item.start_time }} - {{ item.end_time || '...' }}</td>
+                <td class="duration-cell">{{ item.duration ? formatDuration(item.duration) : '-' }}</td>
+                <td>{{ item.project?.name || '-' }}</td>
+                <td class="desc-cell">
+                  <div class="desc-wrapper" [title]="stripHtml(item.description)">
+                    {{ truncateDescription(item.description) }}
+                  </div>
+                </td>
+                <td>{{ item.job_code?.name || '-' }}</td>
+                <td>{{ item.ref_id || '-' }}</td>
+                <td><span class="status-badge" [class]="item.status">{{ item.status }}</span></td>
+                @if (!isLocked) {
+                  <td>
+                    <div class="actions-cell">
+                      <button class="btn btn-secondary btn-sm" title="Edit" (click)="edit(item.id)">
+                        <lucide-icon [img]="icons.Pencil" [size]="14"></lucide-icon>
+                      </button>
+                      <button class="btn btn-secondary btn-sm" title="Copy" (click)="copyLog(item)">
+                        <lucide-icon [img]="icons.Copy" [size]="14"></lucide-icon>
+                      </button>
+                      <button class="btn btn-danger btn-sm" title="Delete" (click)="remove(item)">
+                        <lucide-icon [img]="icons.Trash2" [size]="14"></lucide-icon>
+                      </button>
+                    </div>
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
       }
-    </tr>
-  </thead>
-  <tbody>
-    @if (loading()) {
-      <tr><td [attr.colspan]="isLocked ? 9 : 10" class="empty-row">Loading...</td></tr>
-    } @else if (data().length === 0) {
-      <tr><td [attr.colspan]="isLocked ? 9 : 10" class="empty-row">No work logs found</td></tr>
-    } @else {
-      @for (item of data(); track item.id) {
-        <tr (dblclick)="edit(item.id)" class="clickable-row">
-          <td class="nowrap">{{ formatDate(item.date) }}</td>
-          <td>{{ item.start_time }}</td>
-          <td>{{ item.end_time || '-' }}</td>
-          <td class="duration-cell">{{ item.duration ? formatDuration(item.duration) : '-' }}</td>
-          <td>{{ item.project?.name || '-' }}</td>
-          <td>{{ item.customer?.name || '-' }}</td>
-          <td>{{ item.job_code?.name || '-' }}</td>
-          <td>{{ item.ref_id || '-' }}</td>
-          <td><span class="status-badge" [class]="item.status">{{ item.status }}</span></td>
-          @if (!isLocked) {
-            <td>
-              <div class="actions-cell">
-                <button class="btn btn-secondary btn-sm" title="Edit" (click)="edit(item.id)">
-                  <lucide-icon [img]="icons.Pencil" [size]="14"></lucide-icon>
-                </button>
-                <button class="btn btn-secondary btn-sm" title="Copy" (click)="copyLog(item)">
-                  <lucide-icon [img]="icons.Copy" [size]="14"></lucide-icon>
-                </button>
-                <button class="btn btn-danger btn-sm" title="Delete" (click)="remove(item)">
-                  <lucide-icon [img]="icons.Trash2" [size]="14"></lucide-icon>
-                </button>
-              </div>
-            </td>
-          }
-        </tr>
-      }
-    }
-  </tbody>
-</table>
+    </div>
+  }
+}
 
 @if (totalPages() > 1) {
   <div class="pagination">
