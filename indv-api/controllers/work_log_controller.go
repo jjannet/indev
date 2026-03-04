@@ -44,7 +44,25 @@ func calcDuration(startTime, endTime string) (int, error) {
 	if endMin <= startMin {
 		return 0, fmt.Errorf("end_time must be after start_time")
 	}
-	return endMin - startMin, nil
+
+	duration := endMin - startMin
+
+	// Subtract lunch break overlap (12:00-13:00)
+	lunchStart := 12 * 60 // 720
+	lunchEnd := 13 * 60   // 780
+	overlapStart := startMin
+	if overlapStart < lunchStart {
+		overlapStart = lunchStart
+	}
+	overlapEnd := endMin
+	if overlapEnd > lunchEnd {
+		overlapEnd = lunchEnd
+	}
+	if overlapStart < overlapEnd {
+		duration -= (overlapEnd - overlapStart)
+	}
+
+	return duration, nil
 }
 
 func isDateInWorkPeriod(date time.Time, userID uint) error {

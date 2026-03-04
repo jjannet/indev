@@ -235,7 +235,17 @@ export class WorkLogFormComponent implements OnInit {
     const startMin = +sp[0] * 60 + +sp[1];
     const endMin = +ep[0] * 60 + +ep[1];
     if (endMin <= startMin) return 'Invalid';
-    const diff = endMin - startMin;
+    let diff = endMin - startMin;
+
+    // Subtract lunch break overlap (12:00-13:00)
+    const lunchStart = 720; // 12:00
+    const lunchEnd = 780;   // 13:00
+    const overlapStart = Math.max(startMin, lunchStart);
+    const overlapEnd = Math.min(endMin, lunchEnd);
+    if (overlapStart < overlapEnd) {
+      diff -= (overlapEnd - overlapStart);
+    }
+
     const h = Math.floor(diff / 60);
     const m = diff % 60;
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
